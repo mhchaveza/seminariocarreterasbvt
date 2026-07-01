@@ -2,6 +2,10 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection, render } from "astro:content";
 
+// Ruta dinámica de detalle: se prerenderiza a HTML estático en el build
+// (usa getStaticPaths); el resto del sitio corre en el servidor Node.
+export const prerender = true;
+
 export async function getStaticPaths() {
   const items = await getCollection("news", ({ data }) => !data.draft);
   return items.map((n) => ({

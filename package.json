@@ -9,14 +9,16 @@
     "dev": "astro dev",
     "clean": "rm -rf .astro dist node_modules/.astro",
     "build": "astro build",
+    "start": "node ./dist/server/entry.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "deploy": ". ~/.nvm/nvm.sh && nvm use 22 && npm run clean && astro build && firebase deploy --only hosting:seminariocarreterasbvt"
   },
   "dependencies": {
+    "@astrojs/node": "^10.1.4",
     "@astrojs/sitemap": "^3.7.2",
     "@tailwindcss/vite": "^4.3.0",
-    "astro": "^6.3.1",
+    "astro": "^6.4.8",
     "tailwindcss": "^4.3.0"
   },
   "devDependencies": {
