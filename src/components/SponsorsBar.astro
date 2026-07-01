@@ -1,25 +1,80 @@
-<section
-  class="py-10 md:py-12 bg-surface-container-lowest border-y border-outline-variant"
-  aria-labelledby="sponsor-support-title"
->
-  <div class="max-w-[1280px] mx-auto px-5 md:px-16">
-    <div class="flex flex-col items-center text-center gap-4">
-      <p
-        id="sponsor-support-title"
-        class="font-label text-xs uppercase tracking-widest text-tertiary"
-      >
-        Apoya
-      </p>
-      <div
-        class="w-full max-w-xs rounded-lg border border-outline-variant bg-surface px-8 py-6 flex items-center justify-center"
-      >
-        <img
-          src="/images/sponsors/logo-caf.jpeg"
-          alt="CAF"
-          class="max-h-20 w-auto object-contain"
-          loading="lazy"
-        />
+---
+import { getSponsors, type SponsorItem } from "../lib/solsticio";
+
+// Patrocinadores gestionados desde el panel de Solsticio (frescos por request).
+const sponsors = await getSponsors();
+
+// Se agrupan por su "texto acompañante" (Apoya / Patrocina / Financia…), que se
+// muestra como encabezado de cada grupo. Los sponsors ya vienen ordenados por
+// `order`, así que el orden de los grupos sigue su primera aparición.
+const groups: { label: string; items: SponsorItem[] }[] = [];
+for (const s of sponsors) {
+  const label = s.data.label || "Apoya";
+  let group = groups.find((g) => g.label === label);
+  if (!group) {
+    group = { label, items: [] };
+    groups.push(group);
+  }
+  group.items.push(s);
+}
+---
+
+{
+  groups.length > 0 && (
+    <section
+      class="py-10 md:py-12 bg-surface-container-lowest border-y border-outline-variant"
+      aria-labelledby="sponsor-support-title"
+    >
+      <div class="max-w-[1280px] mx-auto px-5 md:px-16 flex flex-col gap-10">
+        {groups.map((group, gi) => (
+          <div class="flex flex-col items-center text-center gap-4">
+            <p
+              id={gi === 0 ? "sponsor-support-title" : undefined}
+              class="font-label text-xs uppercase tracking-widest text-tertiary"
+            >
+              {group.label}
+            </p>
+            <div class="flex flex-wrap items-center justify-center gap-6">
+              {group.items.map((s) => {
+                const logo = s.data.logo ? (
+                  <img
+                    src={s.data.logo}
+                    alt={s.data.name}
+                    class="max-h-20 w-auto object-contain"
+                    style={
+                      s.data.logoMaxWidth ?
+                        `max-width:${s.data.logoMaxWidth}px` :
+                        undefined
+                    }
+                    loading="lazy"
+                  />
+                ) : (
+                  <span class="font-headline text-lg text-primary uppercase">
+                    {s.data.name}
+                  </span>
+                );
+
+                return (
+                  <div class="w-full max-w-xs rounded-lg border border-outline-variant bg-surface px-8 py-6 flex items-center justify-center">
+                    {s.data.url ? (
+                      <a
+                        href={s.data.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={s.data.name}
+                      >
+                        {logo}
+                      </a>
+                    ) : (
+                      logo
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
-    </div>
-  </div>
-</section>
+    </section>
+  )
+}

@@ -321,10 +321,6 @@ const heroStrip = territorioPhotos.length ?
           loading="lazy"
         />
         <div
-          class="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-primary/85 via-primary/60 to-primary/30"
-        >
-        </div>
-        <div
           class="relative z-10 p-8 md:p-12 h-full flex flex-col justify-end text-on-primary"
         >
           <p
@@ -392,7 +388,7 @@ const heroStrip = territorioPhotos.length ?
                 class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
               />
-              <div class="absolute inset-0 bg-gradient-to-t from-primary via-primary/70 to-transparent" />
+              <div class="absolute inset-0 bg-gradient-to-t from-primary from-0% via-primary/70 via-25% to-transparent to-60%" />
               <div class="relative h-full flex flex-col justify-end p-5 text-on-primary">
                 <span class="material-symbols-outlined text-3xl text-tertiary-fixed mb-2">
                   {a.icon}
