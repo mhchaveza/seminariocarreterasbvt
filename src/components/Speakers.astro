@@ -1,0 +1,173 @@
+---
+import { getCollection, render } from "astro:content";
+
+const speakers = (await getCollection("speakers")).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+
+const items = await Promise.all(
+  speakers.map(async (s) => {
+    const { Content } = await render(s);
+    const hasDetails = Boolean(s.body && s.body.trim().length > 0);
+    return { s, Content, hasDetails };
+  }),
+);
+---
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  {
+    items.map(({ s, Content, hasDetails }) => (
+      <article class="bg-surface-container-lowest rounded-lg border border-outline-variant overflow-hidden flex flex-col group hover:shadow-lg hover:-translate-y-1 transition-all">
+        <div class="aspect-square bg-primary-container relative overflow-hidden">
+          {s.data.photo ? (
+            <img
+              src={s.data.photo}
+              alt={`Foto de ${s.data.name}`}
+              class="w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
+            />
+          ) : (
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span class="material-symbols-outlined text-8xl text-on-primary/30">person</span>
+            </div>
+          )}
+          {s.data.speakerType && (
+            <span class="absolute top-3 left-3 bg-tertiary-fixed text-on-tertiary-fixed px-3 py-1 rounded-full text-xs font-label font-semibold uppercase">
+              {s.data.speakerType === "internacional"
+                ? "Conferencista Internacional"
+                : "Conferencista Nacional"}
+            </span>
+          )}
+        </div>
+        <div class="p-6 flex-grow flex flex-col border-t-4 border-primary">
+          <h3 class="font-headline text-xl text-primary uppercase">{s.data.name}</h3>
+          <p class="font-label text-sm font-semibold text-tertiary mt-1 uppercase">{s.data.title}</p>
+          {s.data.organization && (
+            <p class="text-sm text-on-surface-variant mt-1">{s.data.organization}{s.data.country ? ` · ${s.data.country}` : ""}</p>
+          )}
+          {s.data.bio && (
+            <p class="text-sm text-on-surface-variant mt-3 line-clamp-4">{s.data.bio}</p>
+          )}
+          {hasDetails && (
+            <button
+              type="button"
+              class="speaker-open mt-4 self-start inline-flex items-center gap-1 text-sm font-label font-semibold text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              data-target={`speaker-modal-${s.id}`}
+              aria-haspopup="dialog"
+            >
+              Ver perfil completo
+              <span class="material-symbols-outlined text-base">arrow_forward</span>
+            </button>
+          )}
+        </div>
+
+        {hasDetails && (
+          <dialog
+            id={`speaker-modal-${s.id}`}
+            class="speaker-modal m-auto w-[min(48rem,calc(100vw-2rem))] max-h-[calc(100dvh-2rem)] rounded-2xl bg-surface text-on-surface p-0 backdrop:bg-black/60"
+            aria-labelledby={`speaker-modal-title-${s.id}`}
+          >
+            <div class="flex flex-col max-h-[calc(100dvh-2rem)]">
+              <div class="sticky top-0 z-10 flex items-start gap-4 bg-surface border-b border-outline-variant p-5 md:p-6">
+                {s.data.photo && (
+                  <img
+                    src={s.data.photo}
+                    alt={`Foto de ${s.data.name}`}
+                    class="hidden sm:block w-20 h-20 rounded-full object-cover shrink-0 border-2 border-primary"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                )}
+                <div class="min-w-0 flex-grow">
+                  <h3 id={`speaker-modal-title-${s.id}`} class="font-headline text-xl md:text-2xl text-primary uppercase">{s.data.name}</h3>
+                  <p class="font-label text-sm font-semibold text-tertiary mt-1 uppercase">{s.data.title}</p>
+                  {s.data.organization && (
+                    <p class="text-sm text-on-surface-variant mt-1">{s.data.organization}{s.data.country ? ` · ${s.data.country}` : ""}</p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  class="speaker-close shrink-0 -m-1 p-1 rounded-full text-on-surface-variant hover:bg-surface-container hover:text-on-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                  aria-label="Cerrar"
+                >
+                  <span class="material-symbols-outlined">close</span>
+                </button>
+              </div>
+              <div class="overflow-y-auto p-5 md:p-6">
+                <div class="prose-speaker">
+                  <Content />
+                </div>
+              </div>
+            </div>
+          </dialog>
+        )}
+      </article>
+    ))
+  }
+</div>
+
+<style>
+  /* Tipografía del contenido del modal (markdown renderizado) */
+  .prose-speaker :global(h2) {
+    font-family: var(--font-headline, inherit);
+    text-transform: uppercase;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    color: var(--color-primary, currentColor);
+    margin: 1.5rem 0 0.5rem;
+  }
+  .prose-speaker :global(h2:first-child) {
+    margin-top: 0;
+  }
+  .prose-speaker :global(p) {
+    margin: 0 0 0.75rem;
+    line-height: 1.6;
+    font-size: 0.95rem;
+  }
+  .prose-speaker :global(ul) {
+    list-style: disc;
+    padding-left: 1.25rem;
+    margin: 0 0 0.75rem;
+  }
+  .prose-speaker :global(li) {
+    margin-bottom: 0.25rem;
+    line-height: 1.5;
+    font-size: 0.95rem;
+  }
+  .prose-speaker :global(strong) {
+    font-weight: 600;
+  }
+  .speaker-modal[open] {
+    animation: speaker-modal-in 0.18s ease-out;
+  }
+  @keyframes speaker-modal-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<script>
+  function setupSpeakerModals() {
+    const openers = document.querySelectorAll<HTMLButtonElement>(".speaker-open");
+    openers.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.target;
+        if (!id) return;
+        const dialog = document.getElementById(id) as HTMLDialogElement | null;
+        dialog?.showModal();
+      });
+    });
+
+    document.querySelectorAll<HTMLDialogElement>(".speaker-modal").forEach((dialog) => {
+      dialog.querySelector(".speaker-close")?.addEventListener("click", () => dialog.close());
+      // Cerrar al hacer clic fuera del contenido (sobre el backdrop)
+      dialog.addEventListener("click", (e) => {
+        if (e.target === dialog) dialog.close();
+      });
+    });
+  }
+
+  setupSpeakerModals();
+  document.addEventListener("astro:page-load", setupSpeakerModals);
+</script>

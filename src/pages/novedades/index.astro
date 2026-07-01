@@ -1,0 +1,89 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Hero from "../../components/Hero.astro";
+import { getCollection } from "astro:content";
+
+const all = await getCollection("news", ({ data }) => !data.draft);
+const items = all.sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+
+const categoryLabel: Record<string, string> = {
+  anuncio: "Anuncio",
+  agenda: "Agenda",
+  inscripciones: "Inscripciones",
+  patrocinio: "Patrocinio",
+  convocatoria: "Convocatoria",
+  logistica: "Logística",
+};
+
+const fmt = new Intl.DateTimeFormat("es-CO", {
+  day: "2-digit",
+  month: "long",
+  year: "numeric",
+});
+---
+
+<BaseLayout
+  title="Novedades"
+  description="Anuncios, fechas clave y novedades del II Seminario Internacional de Carreteras de Bajo Volumen de Tránsito."
+>
+  <Hero
+    eyebrow="Novedades"
+    title={`Más novedades<br/><span class="text-tertiary-fixed text-2xl md:text-4xl block mt-3">del seminario</span>`}
+    subtitle="Anuncios oficiales, fechas clave, plazos, convocatorias y todo lo que necesitas saber para no perderte ningún detalle del seminario."
+    primaryCta={{ href: "#listado", label: "Ver novedades" }}
+    secondaryCta={{ href: "/inscripcion", label: "Inscríbete" }}
+    image="/images/banner_main.jpg"
+  />
+
+  <section id="listado" class="py-20 md:py-28 bg-surface">
+    <div class="max-w-[1280px] mx-auto px-5 md:px-16">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {
+          items.map((n) => (
+            <a
+              href={`/novedades/${n.id}`}
+              class="group flex flex-col bg-surface-container-lowest rounded-lg border border-outline-variant overflow-hidden hover:border-primary/40 hover:shadow-brand transition-all"
+            >
+              <div class="p-6 flex flex-col flex-grow">
+                <div class="flex items-center gap-2 mb-4 flex-wrap">
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-tertiary-container/30 text-on-tertiary-container text-[11px] font-label font-semibold uppercase tracking-wider">
+                    {categoryLabel[n.data.category] ?? n.data.category}
+                  </span>
+                  <time
+                    datetime={n.data.date.toISOString()}
+                    class="text-xs text-on-surface-variant"
+                  >
+                    {fmt.format(n.data.date)}
+                  </time>
+                </div>
+                <h3 class="font-headline text-xl text-primary leading-tight mb-3 group-hover:text-tertiary-container transition-colors">
+                  {n.data.title}
+                </h3>
+                <p class="text-sm text-on-surface-variant flex-grow">
+                  {n.data.excerpt}
+                </p>
+                {n.data.tags.length > 0 && (
+                  <div class="flex flex-wrap gap-1.5 mt-4">
+                    {n.data.tags.slice(0, 3).map((t) => (
+                      <span class="text-[10px] uppercase tracking-wider text-on-surface-variant border border-outline-variant rounded px-2 py-0.5">
+                        #{t}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <span class="mt-5 inline-flex items-center font-label text-xs font-semibold uppercase tracking-wider text-primary">
+                  Leer más
+                  <span class="material-symbols-outlined ml-1 text-sm">
+                    arrow_forward
+                  </span>
+                </span>
+              </div>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>

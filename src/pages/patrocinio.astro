@@ -1,0 +1,346 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Hero from "../components/Hero.astro";
+import SectionHeader from "../components/SectionHeader.astro";
+import { SITE } from "../consts";
+import { getEventLocation } from "../lib/solsticio";
+
+const location = await getEventLocation();
+
+const stands = [
+  {
+    name: "Premium Vial",
+    price: "$20.000.000",
+    size: "4m × 4m",
+    highlight: true,
+    quotas: 5,
+    benefits: [
+      "Imagen del aliado en piezas gráficas y audiovisuales del seminario",
+      "Logo en backing fotográfico",
+      "Reel de imágenes en pantallas del seminario",
+      "Logo en auditorio de conferencias",
+      "Logo en website (primer nivel)",
+      "Mención permanente al inicio, intermedios y cierre por el moderador",
+      "Material publicitario en kit de bienvenida (aportado por la empresa)",
+      "Espacio para intervención activa en el evento",
+      "5 cupos presenciales y evento de bienvenida",
+    ],
+    furniture: ["División entre espacios", "Marcación de cenefa", "1 mesa", "2 sillas", "1 punto de energía"],
+  },
+  {
+    name: "Avanzado Vial",
+    price: "$15.000.000",
+    size: "4m × 2m",
+    highlight: false,
+    quotas: 3,
+    benefits: [
+      "Imagen del aliado en piezas gráficas y audiovisuales",
+      "Logo en backing fotográfico",
+      "Logo en auditorio de conferencias",
+      "Logo en website (lugar destacado)",
+      "Mención permanente del moderador",
+      "Material publicitario en kit de bienvenida (aportado por la empresa)",
+      "3 cupos presenciales y evento de bienvenida",
+    ],
+    furniture: ["División entre espacios", "Marcación de cenefa", "1 mesa", "2 sillas", "1 punto de energía"],
+  },
+  {
+    name: "Esencial Vial",
+    price: "$10.000.000",
+    size: "3m × 2m",
+    highlight: false,
+    quotas: 2,
+    benefits: [
+      "Imagen del aliado en piezas gráficas y audiovisuales del seminario",
+      "Logo en backing fotográfico",
+      "Logo en auditorio de conferencias",
+      "Logo en website del evento",
+      "Mención al inicio y finalización de las jornadas por el moderador",
+      "2 cupos presenciales y evento de bienvenida",
+    ],
+    furniture: ["División entre espacios", "Marcación de cenefa", "1 mesa", "2 sillas", "1 punto de energía"],
+  },
+];
+
+const sponsorships = [
+  {
+    icon: "diversity_3",
+    title: "Evento de bienvenida",
+    price: "$10.000.000",
+    details: [
+      "Branding en área del coctel (aportado por la empresa)",
+      "Mención especial",
+      "Activación de marca",
+      "Logo en piezas",
+      "3 acreditaciones",
+    ],
+  },
+  {
+    icon: "shopping_bag",
+    title: "Bolsas del evento",
+    price: "$10.000.000",
+    details: [
+      "Logo en bolsas",
+      "Inclusión de materiales por parte del cliente",
+      "Alta recordación",
+      "2 acreditaciones",
+    ],
+  },
+  {
+    icon: "campaign",
+    title: "Conferencia magistral",
+    price: "$8.000.000",
+    details: [
+      "Branding en sala",
+      "Presentación por parte de la marca",
+      "Mención institucional",
+      "2 acreditaciones",
+    ],
+  },
+  {
+    icon: "handshake",
+    title: "Institucional (sin stand)",
+    price: "$6.000.000",
+    details: [
+      "Mención institucional",
+      "Logo en piezas digitales del evento",
+      "2 acreditaciones",
+    ],
+  },
+  {
+    icon: "local_cafe",
+    title: "Coffee Break AM / PM",
+    price: "$6.000.000",
+    note: "por jornada",
+    details: [
+      "Branding en estaciones",
+      "Mención durante pausas",
+      "Activación de marca",
+      "2 acreditaciones",
+    ],
+  },
+  {
+    icon: "badge",
+    title: "Escarapelas",
+    price: "$6.000.000",
+    details: [
+      "Logo en escarapelas",
+      "Visibilidad permanente",
+      "2 acreditaciones",
+    ],
+  },
+  {
+    icon: "menu_book",
+    title: "Cuadernos",
+    price: "$5.000.000",
+    details: [
+      "Logo en material",
+      "Recordación post-evento",
+      "Mensaje corporativo",
+      "1 acreditación",
+    ],
+  },
+  {
+    icon: "edit",
+    title: "Lapiceros",
+    price: "$3.000.000",
+    details: [
+      "Logo en lapiceros",
+      "Distribución a asistentes",
+      "Presencia constante",
+      "1 acreditación",
+    ],
+  },
+];
+---
+
+<BaseLayout
+  title="Patrocinio"
+  description="Patrocina el II Seminario Internacional de Carreteras de Bajo Volumen de Tránsito. Stands Premium, Avanzado y Esencial, además de patrocinios temáticos para conectar tu marca con líderes del sector vial."
+  image="/images/estante_imagen.jpeg"
+>
+  <Hero
+    eyebrow="Oportunidades comerciales"
+    title="Patrocinio<br/><span class='text-tertiary-fixed text-2xl md:text-4xl block mt-3'>conecta tu marca con el sector vial</span>"
+    subtitle="Posiciona tu empresa como referente en innovación y desarrollo territorial frente a una audiencia especializada del sector público, privado y académico."
+    primaryCta={{ href: "#stands", label: "Ver stands" }}
+    secondaryCta={{ href: "#patrocinios", label: "Ver patrocinios" }}
+    image="/images/estante_imagen.jpeg"
+    logoSrc="/images/logo_completo.png"
+    logoShape="rect"
+  />
+
+  <!-- Resumen del evento: cuándo y dónde (ubicación desde el gestor) -->
+  <section class="bg-primary text-on-primary border-t border-on-primary/10">
+    <div
+      class="max-w-[1280px] mx-auto px-5 md:px-16 py-5 flex flex-col md:flex-row md:items-center md:justify-center gap-3 md:gap-12"
+    >
+      <div class="flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-tertiary-fixed">calendar_today</span>
+        <span class="font-label text-sm font-semibold uppercase tracking-wider"
+          >1 y 2 de octubre de 2026</span
+        >
+      </div>
+      <div class="flex items-center justify-center gap-2 text-center md:text-left">
+        <span class="material-symbols-outlined text-tertiary-fixed">location_on</span>
+        <span class="text-sm text-on-primary/90">
+          {location.name} · {location.venue} · {location.city}
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Por qué patrocinar -->
+  <section class="py-20 md:py-28 bg-surface bg-topo">
+    <div class="max-w-[1280px] mx-auto px-5 md:px-16">
+      <SectionHeader
+        eyebrow="Beneficios"
+        title="¿Por qué patrocinar?"
+        subtitle="Tres razones estratégicas para acompañarnos."
+      />
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-surface-container-lowest p-8 rounded-lg border border-outline-variant text-center">
+          <span class="material-symbols-outlined text-5xl text-tertiary-container mb-4">visibility</span>
+          <h3 class="font-headline text-2xl text-primary uppercase mb-3">Alta visibilidad</h3>
+          <p class="text-on-surface-variant">Exposición ante grupos de expertos del sector académico y empresarial vinculados a la infraestructura vial.</p>
+        </div>
+        <div class="bg-surface-container-lowest p-8 rounded-lg border border-outline-variant text-center">
+          <span class="material-symbols-outlined text-5xl text-tertiary-container mb-4">hub</span>
+          <h3 class="font-headline text-2xl text-primary uppercase mb-3">Conexión</h3>
+          <p class="text-on-surface-variant">Networking con tomadores de decisiones y generadores de negocios en el sector público y privado.</p>
+        </div>
+        <div class="bg-surface-container-lowest p-8 rounded-lg border border-outline-variant text-center">
+          <span class="material-symbols-outlined text-5xl text-tertiary-container mb-4">moving</span>
+          <h3 class="font-headline text-2xl text-primary uppercase mb-3">Posicionamiento</h3>
+          <p class="text-on-surface-variant">Espacio técnico para demostrar capacidades, beneficios o rendimientos de marca ante el público especializado.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stands -->
+  <section id="stands" class="py-20 md:py-28 bg-surface-container-low">
+    <div class="max-w-[1280px] mx-auto px-5 md:px-16">
+      <SectionHeader
+        eyebrow="Muestra comercial"
+        title="Stands disponibles"
+        subtitle="Tres categorías diseñadas para diferentes objetivos de marca y presupuesto."
+      />
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {
+          stands.map((s) => (
+            <article class={`rounded-lg p-8 flex flex-col relative ${s.highlight ? "bg-primary text-on-primary border-2 border-tertiary-fixed shadow-xl" : "bg-surface-container-lowest border border-outline-variant"}`}>
+              {s.highlight && (
+                <span class="absolute -top-3 right-6 bg-tertiary-fixed text-on-tertiary-fixed px-4 py-1 rounded-full text-xs font-label font-semibold uppercase">Destacado</span>
+              )}
+              <h3 class={`font-headline text-3xl uppercase mb-1 ${s.highlight ? "text-tertiary-fixed" : "text-primary"}`}>{s.name}</h3>
+              <p class={`text-sm mb-6 ${s.highlight ? "text-on-primary/80" : "text-on-surface-variant"}`}>Stand {s.size} · {s.quotas} acreditaciones</p>
+
+              <div class={`font-display text-4xl mb-6 ${s.highlight ? "text-on-primary" : "text-tertiary-container"}`}>{s.price}</div>
+
+              <h4 class={`font-label text-xs font-semibold uppercase mb-3 ${s.highlight ? "text-tertiary-fixed" : "text-primary"}`}>Incluye</h4>
+              <ul class="space-y-2 mb-6 flex-grow">
+                {s.benefits.map((b) => (
+                  <li class={`flex items-start text-sm ${s.highlight ? "text-on-primary/90" : "text-on-surface-variant"}`}>
+                    <span class={`material-symbols-outlined text-base mr-2 mt-0.5 ${s.highlight ? "text-tertiary-fixed" : "text-primary"}`}>check_circle</span>
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <h4 class={`font-label text-xs font-semibold uppercase mb-2 ${s.highlight ? "text-tertiary-fixed" : "text-primary"}`}>Mobiliario</h4>
+              <ul class="grid grid-cols-2 gap-1 mb-6">
+                {s.furniture.map((f) => (
+                  <li class={`text-xs ${s.highlight ? "text-on-primary/80" : "text-on-surface-variant"}`}>· {f}</li>
+                ))}
+              </ul>
+
+              <a
+                href={`mailto:?subject=${encodeURIComponent(`Interés stand ${s.name} - II Seminario Carreteras`)}`}
+                class={`mt-auto inline-flex items-center justify-center px-5 py-3 rounded-md font-label text-sm font-semibold uppercase transition-colors ${s.highlight ? "bg-tertiary-fixed text-on-tertiary-fixed hover:bg-tertiary-fixed-dim" : "bg-primary text-on-primary hover:bg-primary-container"}`}
+              >
+                Solicitar este stand
+              </a>
+            </article>
+          ))
+        }
+      </div>
+
+      <div class="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+        <div>
+          <h3 class="font-headline text-2xl text-primary uppercase mb-3">Plano de la muestra comercial</h3>
+          <p class="text-on-surface-variant">Distribución de stands en el área comercial del evento. Las ubicaciones se asignan por orden de confirmación.</p>
+        </div>
+        <img
+          src="/images/plano_auditorio.jpeg"
+          alt="Plano de la muestra comercial del seminario"
+          class="w-full h-auto rounded-lg border border-outline-variant"
+          loading="lazy"
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- Patrocinios temáticos -->
+  <section id="patrocinios" class="py-20 md:py-28 bg-primary text-on-primary">
+    <div class="max-w-[1280px] mx-auto px-5 md:px-16">
+      <div class="text-center max-w-3xl mx-auto mb-12">
+        <p class="font-label text-sm uppercase tracking-widest text-tertiary-fixed mb-3">Más opciones</p>
+        <h2 class="font-headline text-3xl md:text-5xl uppercase leading-tight mb-4">Otros patrocinios</h2>
+        <p class="text-lg text-on-primary/90">Activaciones específicas para ampliar el alcance de tu marca durante el seminario.</p>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {
+          sponsorships.map((s) => (
+            <div class="bg-surface/10 rounded-lg p-6 border border-on-primary/20 backdrop-blur-sm flex flex-col">
+              <span class="material-symbols-outlined text-4xl text-tertiary-fixed mb-3">{s.icon}</span>
+              <h4 class="font-label text-sm font-semibold uppercase text-on-primary mb-2">{s.title}</h4>
+              <div class="font-display text-2xl text-tertiary-fixed mb-1">{s.price}</div>
+              {s.note && <p class="text-xs text-on-primary/70 mb-3">{s.note}</p>}
+              <ul class="text-sm text-on-primary/85 space-y-1.5 mt-3 flex-grow">
+                {s.details.map((d) => (
+                  <li class="flex items-start">
+                    <span class="material-symbols-outlined text-sm mr-1 mt-0.5 text-tertiary-fixed">check</span>
+                    <span>{d}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Contacto comercial -->
+  <section class="py-20 md:py-28 bg-surface bg-topo">
+    <div class="max-w-[1280px] mx-auto px-5 md:px-16">
+      <div class="bg-surface-container-lowest rounded-lg p-8 md:p-12 border border-outline-variant max-w-4xl mx-auto text-center">
+        <span class="material-symbols-outlined text-5xl text-primary mb-4">support_agent</span>
+        <h2 class="font-headline text-3xl md:text-4xl text-primary uppercase mb-3">Coordinación comercial</h2>
+        <p class="text-on-surface-variant mb-6">Solicita la propuesta personalizada para tu marca o resuelve cualquier duda con nuestro equipo.</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href={`https://wa.me/${SITE.contact.comercial.phone.replace(/\D/g, "")}`}
+            target="_blank"
+            rel="noopener"
+            class="inline-flex items-center justify-center px-6 py-3 bg-primary text-on-primary rounded-md font-label text-sm font-semibold uppercase hover:bg-primary-container transition-colors"
+          >
+            <span class="material-symbols-outlined mr-2 text-base">chat</span>
+            <span class="flex flex-col items-start text-left leading-snug">
+              <span>{SITE.contact.comercial.name}</span>
+              <span class="whitespace-nowrap font-normal normal-case">{SITE.contact.comercial.phone}</span>
+            </span>
+          </a>
+          <a
+            href={`mailto:${SITE.contact.email}?subject=Patrocinio II Seminario Carreteras`}
+            class="inline-flex items-center justify-center px-6 py-3 border-2 border-primary text-primary rounded-md font-label text-sm font-semibold uppercase hover:bg-primary hover:text-on-primary transition-colors"
+          >
+            <span class="material-symbols-outlined mr-2 text-base">mail</span>
+            {SITE.contact.email}
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

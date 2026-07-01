@@ -1,0 +1,371 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Hero from "../components/Hero.astro";
+import SectionHeader from "../components/SectionHeader.astro";
+import { SITE, API } from "../consts";
+import { getEventLocation } from "../lib/solsticio";
+
+const location = await getEventLocation();
+
+const tickets = [
+  {
+    name: "Público General",
+    price: "$500.000",
+    priceNum: 500000,
+    badge: "Presencial",
+    desc: `Acceso completo a las dos jornadas del seminario en ${location.city}.`,
+    highlight: true,
+  },
+  {
+    name: "Estudiantes",
+    price: "$350.000",
+    priceNum: 350000,
+    badge: "Pregrado y posgrado",
+    desc: "Tarifa especial para estudiantes con carnet vigente. Presencial.",
+    highlight: false,
+  },
+  {
+    name: "Virtual",
+    price: "$350.000",
+    priceNum: 350000,
+    badge: "En línea",
+    desc: "Transmisión en vivo de las conferencias y acceso a grabaciones.",
+    highlight: false,
+  },
+];
+
+const includes = [
+  { icon: "forum", title: "Ingreso a todas las conferencias" },
+  { icon: "work", title: "Kit de bienvenida" },
+  { icon: "storefront", title: "Acceso a la feria industrial" },
+  { icon: "celebration", title: "Evento de bienvenida" },
+  { icon: "workspace_premium", title: "Certificado de asistencia" },
+];
+---
+
+<BaseLayout
+  title="Inscripción"
+  description="Inscríbete al II Seminario Internacional de Carreteras de Bajo Volumen de Tránsito. Tarifas para público general, estudiantes y modalidad virtual. 1 y 2 de octubre de 2026."
+>
+  <Hero
+    eyebrow="Preinscripción abierta"
+    title="Asegura tu lugar<br/><span class='text-tertiary-fixed text-2xl md:text-4xl block mt-3'>en el seminario</span>"
+    subtitle={`Tres modalidades para acompañarnos los días 1 y 2 de octubre de 2026 en ${location.name}.`}
+    primaryCta={{ href: "#tarifas", label: "Ver tarifas" }}
+    secondaryCta={{ href: "#formulario", label: "Inscribirme" }}
+    image="/images/objetivo.jpg"
+  />
+
+  <!-- Resumen del evento: cuándo y dónde (ubicación desde el gestor) -->
+  <section class="bg-primary text-on-primary border-t border-on-primary/10">
+    <div
+      class="max-w-[1280px] mx-auto px-5 md:px-16 py-5 flex flex-col md:flex-row md:items-center md:justify-center gap-3 md:gap-12"
+    >
+      <div class="flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-tertiary-fixed">calendar_today</span>
+        <span class="font-label text-sm font-semibold uppercase tracking-wider"
+          >1 y 2 de octubre de 2026</span
+        >
+      </div>
+      <div class="flex items-center justify-center gap-2 text-center md:text-left">
+        <span class="material-symbols-outlined text-tertiary-fixed">location_on</span>
+        <span class="text-sm text-on-primary/90">
+          {location.name} · {location.venue} · {location.city}
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tarifas -->
+  <section id="tarifas" class="py-20 md:py-28 bg-surface bg-topo">
+    <div class="max-w-[1280px] mx-auto px-5 md:px-16">
+      <SectionHeader
+        eyebrow="Inversión"
+        title="Tarifas de inscripción"
+        subtitle="Elige la modalidad que mejor se adapte a tu perfil profesional."
+      />
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        {
+          tickets.map((t) => (
+            <div class={`rounded-lg p-8 text-center border-2 flex flex-col ${t.highlight ? "bg-primary text-on-primary border-primary shadow-xl" : "bg-surface-container-lowest border-outline-variant"}`}>
+              <span class={`font-label text-xs font-semibold uppercase tracking-wider mb-2 ${t.highlight ? "text-tertiary-fixed" : "text-tertiary"}`}>{t.badge}</span>
+              <h3 class={`font-headline text-2xl uppercase mb-3 ${t.highlight ? "text-tertiary-fixed" : "text-primary"}`}>{t.name}</h3>
+              <div class={`font-display text-5xl my-4 ${t.highlight ? "text-on-primary" : "text-tertiary-container"}`}>
+                {t.price}
+                <span class="text-sm font-body block opacity-70 mt-1">COP</span>
+              </div>
+              <p class={`text-sm mb-6 flex-grow ${t.highlight ? "text-on-primary/85" : "text-on-surface-variant"}`}>{t.desc}</p>
+              <a
+                href="#formulario"
+                class={`inline-block mt-2 px-6 py-3 rounded-md w-full font-label text-sm font-semibold uppercase transition-colors ${t.highlight ? "bg-tertiary-fixed text-on-tertiary-fixed hover:bg-tertiary-fixed-dim" : "bg-primary text-on-primary hover:bg-primary-container"}`}
+              >
+                Preinscribirme
+              </a>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Qué incluye -->
+  <section class="py-20 md:py-28 bg-surface-container-low">
+    <div class="max-w-[1280px] mx-auto px-5 md:px-16">
+      <SectionHeader
+        eyebrow="Tu inscripción incluye"
+        title="¿Qué obtienes?"
+        subtitle="Todo lo que necesitas para una experiencia completa durante el seminario."
+      />
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4 max-w-5xl mx-auto">
+        {
+          includes.map((i) => (
+            <div class="bg-surface-container-lowest p-6 rounded-lg border border-outline-variant text-center">
+              <span class="material-symbols-outlined text-4xl text-primary mb-3">{i.icon}</span>
+              <p class="font-label text-sm font-semibold uppercase text-on-surface">{i.title}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Formulario -->
+  <section id="formulario" class="py-20 md:py-28 bg-surface bg-topo">
+    <div class="max-w-[1280px] mx-auto px-5 md:px-16">
+      <SectionHeader
+        eyebrow="Formulario"
+        title="Diligencia tu preinscripción"
+        subtitle="Completa tu preinscripción y asegura tu cupo. Próximamente encontrarás publicado el botón de pago para completar tu proceso de inscripción."
+      />
+
+      <form
+        id="inscripcion-form"
+        novalidate
+        class="bg-surface-container-lowest rounded-lg p-8 md:p-10 border border-outline-variant max-w-3xl mx-auto space-y-6"
+      >
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label for="firstName" class="block font-label text-sm font-semibold uppercase text-primary mb-2">Nombres *</label>
+            <input id="firstName" name="firstName" type="text" required autocomplete="given-name"
+              class="w-full px-4 py-3 rounded-md border border-outline-variant bg-surface-container-lowest text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+          </div>
+          <div>
+            <label for="lastName" class="block font-label text-sm font-semibold uppercase text-primary mb-2">Apellidos *</label>
+            <input id="lastName" name="lastName" type="text" required autocomplete="family-name"
+              class="w-full px-4 py-3 rounded-md border border-outline-variant bg-surface-container-lowest text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+          </div>
+          <div>
+            <label for="empresa" class="block font-label text-sm font-semibold uppercase text-primary mb-2">Empresa u organización *</label>
+            <input id="empresa" name="empresa" type="text" required autocomplete="organization"
+              class="w-full px-4 py-3 rounded-md border border-outline-variant bg-surface-container-lowest text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+          </div>
+          <div>
+            <label for="cargo" class="block font-label text-sm font-semibold uppercase text-primary mb-2">Cargo *</label>
+            <input id="cargo" name="cargo" type="text" required autocomplete="organization-title"
+              class="w-full px-4 py-3 rounded-md border border-outline-variant bg-surface-container-lowest text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+          </div>
+          <div>
+            <label for="ciudad" class="block font-label text-sm font-semibold uppercase text-primary mb-2">Ciudad *</label>
+            <input id="ciudad" name="ciudad" type="text" required autocomplete="address-level2"
+              class="w-full px-4 py-3 rounded-md border border-outline-variant bg-surface-container-lowest text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+          </div>
+          <div>
+            <label for="whatsapp" class="block font-label text-sm font-semibold uppercase text-primary mb-2">WhatsApp *</label>
+            <input id="whatsapp" name="whatsapp" type="tel" required autocomplete="tel"
+              placeholder="+57 300 000 0000"
+              class="w-full px-4 py-3 rounded-md border border-outline-variant bg-surface-container-lowest text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+          </div>
+          <div class="md:col-span-2">
+            <label for="email" class="block font-label text-sm font-semibold uppercase text-primary mb-2">Correo electrónico *</label>
+            <input id="email" name="email" type="email" required autocomplete="email"
+              class="w-full px-4 py-3 rounded-md border border-outline-variant bg-surface-container-lowest text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+          </div>
+          <div class="md:col-span-2">
+            <label for="modalidad" class="block font-label text-sm font-semibold uppercase text-primary mb-2">Modalidad / tarifa *</label>
+            <select id="modalidad" name="modalidad" required
+              class="w-full px-4 py-3 rounded-md border border-outline-variant bg-surface-container-lowest text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+              <option value="" disabled selected>Selecciona una opción</option>
+              <option value="Público General">Público General — $500.000 (presencial)</option>
+              <option value="Estudiantes">Estudiantes — $350.000 (presencial)</option>
+              <option value="Virtual">Virtual — $350.000 (en línea)</option>
+            </select>
+          </div>
+        </div>
+
+        <fieldset class="space-y-3">
+          <legend class="block font-label text-sm font-semibold uppercase text-primary mb-2">Sector al que pertenece *</legend>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {["Público", "Privado", "Académico", "Independiente"].map((opt) => (
+              <label class="flex items-center gap-2 px-4 py-3 rounded-md border border-outline-variant bg-surface-container-lowest cursor-pointer hover:border-primary/60 transition-colors">
+                <input type="radio" name="sector" value={opt} required class="w-4 h-4 text-primary focus:ring-primary/20" />
+                <span class="text-sm">{opt}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset class="space-y-3">
+          <legend class="block font-label text-sm font-semibold uppercase text-primary mb-2">Interés de participación</legend>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {["Asistente", "Expositor en muestra comercial"].map((opt) => (
+              <label class="flex items-center gap-2 px-4 py-3 rounded-md border border-outline-variant bg-surface-container-lowest cursor-pointer hover:border-primary/60 transition-colors">
+                <input type="radio" name="interes" value={opt} class="w-4 h-4 text-primary focus:ring-primary/20" />
+                <span class="text-sm">{opt}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset class="space-y-3 rounded-md border border-outline-variant bg-surface-container-low p-5">
+          <legend class="px-2 font-label text-sm font-semibold uppercase text-primary">Tratamiento de datos personales *</legend>
+          <p class="text-sm text-on-surface-variant">
+            Conoce nuestra{" "}
+            <a
+              href="https://udemedellin.edu.co/politica-para-el-manejo-y-tratamiento-de-datos-personales/"
+              target="_blank"
+              rel="noopener"
+              class="text-primary underline"
+            >política de Habeas Data</a>{" "}
+            de la Universidad de Medellín. ¿Autorizas el tratamiento de tus datos para uso del evento?
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label class="flex items-center gap-2 px-4 py-3 rounded-md border border-outline-variant bg-surface-container-lowest cursor-pointer hover:border-primary/60 transition-colors">
+              <input type="radio" name="consent" value="Si autorizo" required class="w-4 h-4 text-primary focus:ring-primary/20" />
+              <span class="text-sm">Sí autorizo</span>
+            </label>
+            <label class="flex items-center gap-2 px-4 py-3 rounded-md border border-outline-variant bg-surface-container-lowest cursor-pointer hover:border-primary/60 transition-colors">
+              <input type="radio" name="consent" value="No autorizo" required class="w-4 h-4 text-primary focus:ring-primary/20" />
+              <span class="text-sm">No autorizo</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <p id="inscripcion-error" role="alert" class="hidden text-sm text-error bg-error-container/40 border border-error/30 rounded-md px-4 py-3"></p>
+
+        <button
+          id="inscripcion-submit"
+          type="submit"
+          class="w-full inline-flex items-center justify-center px-7 py-4 bg-primary text-on-primary rounded-md font-label text-sm font-semibold uppercase hover:bg-primary-container transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          <span data-label>Enviar preinscripción</span>
+          <span class="material-symbols-outlined ml-2 text-base">send</span>
+        </button>
+      </form>
+
+      <!-- Success message (revealed after submit) -->
+      <div
+        id="inscripcion-success"
+        role="status"
+        class="hidden max-w-3xl mx-auto mt-6 rounded-lg border-2 border-tertiary bg-tertiary-container/30 p-6 text-center"
+      >
+        <span class="material-symbols-outlined text-4xl text-tertiary mb-2">check_circle</span>
+        <h3 class="font-headline text-xl uppercase text-primary mb-1">¡Inscripción enviada!</h3>
+        <p class="text-sm text-on-surface-variant">
+          Recibimos tu información. Nuestro equipo te contactará con las instrucciones de pago.
+        </p>
+      </div>
+
+      <script define:vars={{ apiBase: API.baseUrl, tenantId: API.tenantId, eventId: API.eventId }}>
+        (function () {
+          const form = document.getElementById("inscripcion-form");
+          const success = document.getElementById("inscripcion-success");
+          const errorBox = document.getElementById("inscripcion-error");
+          const submitBtn = document.getElementById("inscripcion-submit");
+          if (!form || !success || !errorBox || !submitBtn) return;
+
+          const label = submitBtn.querySelector("[data-label]");
+          const endpoint =
+            `${apiBase}/tenants/${encodeURIComponent(tenantId)}` +
+            `/events/${encodeURIComponent(eventId)}/registrations`;
+
+          const val = (name) => {
+            const el = form.elements.namedItem(name);
+            return el && "value" in el ? String(el.value || "").trim() : "";
+          };
+
+          form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            errorBox.classList.add("hidden");
+
+            if (!form.checkValidity()) {
+              form.reportValidity();
+              return;
+            }
+
+            const consent = val("consent");
+            if (consent !== "Si autorizo") {
+              errorBox.textContent =
+                "Debes autorizar el tratamiento de datos para completar la inscripción.";
+              errorBox.classList.remove("hidden");
+              return;
+            }
+
+            const payload = {
+              firstName: val("firstName"),
+              lastName: val("lastName"),
+              email: val("email"),
+              phone: val("whatsapp"),
+              company: val("empresa"),
+              role: val("cargo"),
+              city: val("ciudad"),
+              country: "Colombia",
+              ticketType: val("modalidad"),
+              consentDataPolicy: true,
+              consentMarketing: false,
+              customFields: {
+                sector: val("sector"),
+                interes: val("interes"),
+              },
+            };
+
+            submitBtn.disabled = true;
+            const original = label ? label.textContent : "";
+            if (label) label.textContent = "Enviando…";
+
+            try {
+              const res = await fetch(endpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+              });
+
+              if (res.ok || res.status === 409) {
+                form.classList.add("hidden");
+                success.classList.remove("hidden");
+                success.scrollIntoView({ behavior: "smooth", block: "center" });
+                return;
+              }
+
+              const data = await res.json().catch(() => ({}));
+              throw new Error(data.error || `HTTP ${res.status}`);
+            } catch (err) {
+              errorBox.textContent =
+                "No pudimos enviar tu inscripción (" +
+                (err && err.message ? err.message : "error de red") +
+                "). Intenta de nuevo o contáctanos.";
+              errorBox.classList.remove("hidden");
+            } finally {
+              submitBtn.disabled = false;
+              if (label) label.textContent = original;
+            }
+          });
+        })();
+      </script>
+    </div>
+  </section>
+
+  <!-- Contacto -->
+  <section class="py-16 bg-surface-container-low">
+    <div class="max-w-[1280px] mx-auto px-5 md:px-16 text-center">
+      <p class="text-on-surface-variant mb-3">¿Tienes dudas sobre tu inscripción?</p>
+      <a
+        href={`mailto:${SITE.contact.email}`}
+        class="inline-flex items-center gap-2 text-primary font-label text-base font-semibold uppercase hover:text-primary-container break-all"
+      >
+        <span class="material-symbols-outlined">mail</span>
+        {SITE.contact.email}
+      </a>
+    </div>
+  </section>
+</BaseLayout>

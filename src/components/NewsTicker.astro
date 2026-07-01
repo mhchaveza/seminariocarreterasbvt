@@ -1,0 +1,128 @@
+---
+import { getCollection } from "astro:content";
+
+interface Props {
+  limit?: number;
+}
+
+const { limit = 8 } = Astro.props;
+
+const all = await getCollection("news", ({ data }) => !data.draft);
+const items = all
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .slice(0, limit);
+
+const categoryLabel: Record<string, string> = {
+  anuncio: "Anuncio",
+  agenda: "Agenda",
+  inscripciones: "Inscripciones",
+  patrocinio: "Patrocinio",
+  convocatoria: "Convocatoria",
+  logistica: "Logística",
+};
+
+const fmt = new Intl.DateTimeFormat("es-CO", {
+  day: "2-digit",
+  month: "short",
+});
+
+// duplicate items so the marquee loops seamlessly
+const loop = [...items, ...items];
+---
+
+{
+  items.length > 0 && (
+    <aside
+      aria-label="Novedades recientes"
+      class="relative bg-primary text-on-primary border-b border-primary-container/30 overflow-hidden"
+    >
+      <div class="max-w-[1280px] mx-auto px-5 md:px-10 lg:px-16 flex items-stretch gap-4 md:gap-6 py-2.5">
+        <div class="shrink-0 flex items-center gap-2 pr-4 md:pr-6 border-r border-on-primary/20">
+          <span class="material-symbols-outlined text-tertiary-fixed text-xl animate-pulse">
+            campaign
+          </span>
+          <span class="font-label text-[11px] md:text-xs font-semibold uppercase tracking-[0.2em] text-tertiary-fixed whitespace-nowrap">
+            Novedades
+          </span>
+        </div>
+
+        <div class="relative flex-1 overflow-hidden ticker-mask">
+          <ul class="news-ticker-track flex items-center gap-10 whitespace-nowrap py-1">
+            {loop.map((n, idx) => (
+              <li class="flex items-center gap-3 shrink-0">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-tertiary-fixed/15 text-tertiary-fixed text-[10px] font-label font-semibold uppercase tracking-wider">
+                  {categoryLabel[n.data.category] ?? n.data.category}
+                </span>
+                <time
+                  datetime={n.data.date.toISOString()}
+                  class="text-[11px] text-on-primary/70 uppercase tracking-wider"
+                >
+                  {fmt.format(n.data.date)}
+                </time>
+                <a
+                  href={`/novedades/${n.id}`}
+                  class="text-sm font-medium text-on-primary hover:text-tertiary-fixed transition-colors"
+                >
+                  {n.data.title}
+                </a>
+                <span
+                  class="text-on-primary/30"
+                  aria-hidden={idx === loop.length - 1 ? "true" : "false"}
+                >
+                  ◆
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <a
+          href="/novedades"
+          class="hidden md:inline-flex shrink-0 items-center gap-1 font-label text-[11px] font-semibold uppercase tracking-wider text-tertiary-fixed hover:text-on-primary transition-colors"
+        >
+          Ver todas
+          <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </a>
+      </div>
+    </aside>
+  )
+}
+
+<style>
+  .ticker-mask {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 5%,
+      black 95%,
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 5%,
+      black 95%,
+      transparent
+    );
+  }
+  .news-ticker-track {
+    animation: ticker-scroll 45s linear infinite;
+    width: max-content;
+  }
+  .news-ticker-track:hover {
+    animation-play-state: paused;
+  }
+  @keyframes ticker-scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .news-ticker-track {
+      animation: none;
+    }
+  }
+</style>

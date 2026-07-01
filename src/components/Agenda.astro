@@ -1,0 +1,83 @@
+---
+import { getCollection } from "astro:content";
+
+const items = (await getCollection("agenda")).sort(
+  (a, b) =>
+    a.data.day - b.data.day ||
+    a.data.startTime.localeCompare(b.data.startTime) ||
+    a.data.order - b.data.order,
+);
+
+const days = [1, 2].map((day) => ({
+  day,
+  date: items.find((i) => i.data.day === day)?.data.date,
+  items: items.filter((i) => i.data.day === day),
+}));
+
+const typeStyles: Record<string, { icon: string; pill: string }> = {
+  conferencia: { icon: "campaign", pill: "bg-primary text-on-primary" },
+  panel: { icon: "groups", pill: "bg-primary-container text-on-primary" },
+  taller: { icon: "build", pill: "bg-tertiary-container text-on-tertiary-container" },
+  pausa: { icon: "local_cafe", pill: "bg-secondary-container text-on-secondary-container" },
+  ceremonia: { icon: "stars", pill: "bg-tertiary-fixed text-on-tertiary-fixed" },
+  networking: { icon: "celebration", pill: "bg-tertiary-fixed-dim text-on-tertiary-fixed" },
+};
+---
+
+<div class="space-y-12">
+  {
+    days.map(({ day, date, items: dayItems }) => (
+      <div>
+        <div class="flex items-baseline gap-4 mb-6">
+          <span class="font-display text-5xl text-primary leading-none">D{day}</span>
+          <div>
+            <p class="font-label text-xs uppercase tracking-widest text-tertiary">Día {day}</p>
+            <p class="font-headline text-2xl text-on-surface uppercase">
+              {new Date(date + "T00:00:00").toLocaleDateString("es-CO", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </p>
+          </div>
+        </div>
+
+        <div class="bg-surface-container-lowest rounded-lg border border-outline-variant overflow-hidden">
+          <ul class="divide-y divide-outline-variant/50">
+            {dayItems.map((item) => {
+              const style = typeStyles[item.data.type] ?? typeStyles.conferencia;
+              return (
+                <li class="grid grid-cols-1 md:grid-cols-[140px_1fr_auto] gap-4 p-5 hover:bg-surface-container-low transition-colors">
+                  <div class="font-label text-sm font-semibold text-primary">
+                    {item.data.startTime} – {item.data.endTime}
+                  </div>
+                  <div>
+                    <h3 class="font-body text-base md:text-lg font-semibold text-on-surface leading-snug">
+                      {item.data.title}
+                    </h3>
+                    {item.data.speaker && (
+                      <p class="text-sm text-on-surface-variant mt-1 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-base">person</span>
+                        {item.data.speaker}
+                      </p>
+                    )}
+                    {item.data.description && (
+                      <p class="text-sm text-on-surface-variant mt-2">{item.data.description}</p>
+                    )}
+                  </div>
+                  <div class="flex items-start md:items-center">
+                    <span class={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-label font-semibold uppercase ${style.pill}`}>
+                      <span class="material-symbols-outlined text-base">{style.icon}</span>
+                      {item.data.type}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
+    ))
+  }
+</div>

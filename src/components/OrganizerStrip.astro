@@ -1,0 +1,55 @@
+---
+interface Props {
+  variant?: "light" | "dark";
+}
+const { variant = "light" } = Astro.props;
+const bg =
+  variant === "dark"
+    ? "bg-primary text-on-primary border-y border-primary-container/30"
+    : "bg-surface-container-lowest text-on-surface border-y border-outline-variant";
+const labelColor =
+  variant === "dark" ? "text-tertiary-fixed" : "text-tertiary";
+const subColor =
+  variant === "dark" ? "text-on-primary/80" : "text-on-surface-variant";
+const logoSrc =
+  variant === "dark"
+    ? "/images/logo-universidad-de-medellin-blanco.png"
+    : "/images/logo-universidad-de-medellin.png";
+---
+
+<section class={`py-8 md:py-10 ${bg}`}>
+  <div
+    class="max-w-[1280px] mx-auto px-5 md:px-16 flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 text-center md:text-left"
+  >
+    <div class="md:max-w-md">
+      <p
+        class={`font-label text-[11px] md:text-xs uppercase tracking-[0.25em] ${labelColor} mb-1`}
+      >
+        Evento organizado y patrocinado por
+      </p>
+      <p class={`font-headline text-base md:text-lg uppercase ${subColor}`}>
+        Universidad de Medellín
+      </p>
+    </div>
+    <div class="shrink-0 flex flex-col items-center gap-1">
+      <a
+        href="https://udemedellin.edu.co"
+        target="_blank"
+        rel="noopener"
+        aria-label="Universidad de Medellín"
+      >
+        <img
+          src={logoSrc}
+          alt="Logo Universidad de Medellín"
+          class="h-16 md:h-20 w-auto object-contain"
+          loading="lazy"
+        />
+      </a>
+      <span
+        class={`font-label text-[9px] md:text-[10px] uppercase tracking-[0.2em] ${subColor}`}
+      >
+        Vigilada Mineducación
+      </span>
+    </div>
+  </div>
+</section>

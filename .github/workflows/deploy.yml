@@ -1,0 +1,57 @@
+# Despliegue del sitio Astro a Firebase Hosting.
+#
+# Este workflow asume que la RAÍZ del repositorio de GitHub es esta carpeta
+# `site/` (donde viven package.json, astro.config.mjs y firebase.json). Si subes
+# el repo desde una carpeta superior, mueve este archivo a `<raíz>/.github/workflows/`
+# y ajusta `working-directory`/rutas.
+#
+# Se dispara de tres formas:
+#   1. repository_dispatch (event_type: rebuild-site) -> lo manda el botón
+#      "Publicar cambios" del panel Solsticio a través de /api/rebuild.
+#   2. workflow_dispatch -> botón manual "Run workflow" en GitHub.
+#   3. push a main -> cada vez que cambie el código del sitio.
+#
+# Secret requerido en el repo (Settings > Secrets and variables > Actions):
+#   FIREBASE_SERVICE_ACCOUNT  -> JSON completo de una cuenta de servicio de
+#   Firebase con permiso de Hosting Admin sobre el proyecto centauri-events.
+
+name: Deploy site
+
+on:
+  repository_dispatch:
+    types: [rebuild-site]
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+# Evita despliegues solapados; cancela el anterior si llega uno nuevo.
+concurrency:
+  group: deploy-site
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Write service account
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > "$RUNNER_TEMP/firebase-sa.json"
+
+      - name: Deploy to Firebase Hosting
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json
+        run: npx firebase-tools@latest deploy --only hosting:seminariocarreterasbvt --project centauri-events --non-interactive

@@ -1,0 +1,30 @@
+---
+const items = [
+  { icon: "forum", title: "Ingreso a todas las conferencias" },
+  { icon: "card_giftcard", title: "Kit de bienvenida" },
+  { icon: "storefront", title: "Acceso a la feria industrial" },
+  { icon: "celebration", title: "Evento de bienvenida" },
+  { icon: "workspace_premium", title: "Certificado de asistencia" },
+];
+---
+
+<section class="py-16 md:py-20 bg-surface-container-low">
+  <div class="max-w-[1280px] mx-auto px-5 md:px-16">
+    <div class="text-center mb-10">
+      <p class="font-label text-xs uppercase tracking-widest text-tertiary mb-3">Tu inscripción incluye</p>
+      <h2 class="font-headline text-3xl md:text-4xl uppercase text-primary leading-tight">
+        ¿Qué incluye tu inscripción?
+      </h2>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 max-w-5xl mx-auto">
+      {
+        items.map((i) => (
+          <div class="bg-surface-container-lowest p-6 rounded-lg border border-outline-variant text-center">
+            <span class="material-symbols-outlined text-4xl text-tertiary-container mb-3">{i.icon}</span>
+            <p class="font-label text-sm font-semibold uppercase text-on-surface leading-snug">{i.title}</p>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

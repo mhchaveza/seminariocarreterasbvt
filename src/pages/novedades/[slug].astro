@@ -1,0 +1,137 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection, render } from "astro:content";
+
+export async function getStaticPaths() {
+  const items = await getCollection("news", ({ data }) => !data.draft);
+  return items.map((n) => ({
+    params: { slug: n.id },
+    props: { entry: n },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+const categoryLabel: Record<string, string> = {
+  anuncio: "Anuncio",
+  agenda: "Agenda",
+  inscripciones: "Inscripciones",
+  patrocinio: "Patrocinio",
+  convocatoria: "Convocatoria",
+  logistica: "Logística",
+};
+
+const fmt = new Intl.DateTimeFormat("es-CO", {
+  day: "2-digit",
+  month: "long",
+  year: "numeric",
+});
+
+// Related: 3 últimos distintos de este
+const all = await getCollection("news", ({ data }) => !data.draft);
+const related = all
+  .filter((n) => n.id !== entry.id)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .slice(0, 3);
+---
+
+<BaseLayout
+  title={entry.data.title}
+  description={entry.data.excerpt}
+>
+  <article class="pt-32 md:pt-40 pb-20 bg-surface">
+    <div class="max-w-3xl mx-auto px-5 md:px-8">
+      <a
+        href="/novedades"
+        class="inline-flex items-center font-label text-xs font-semibold uppercase tracking-wider text-on-surface-variant hover:text-primary transition-colors mb-8"
+      >
+        <span class="material-symbols-outlined mr-1 text-base">arrow_back</span>
+        Todas las novedades
+      </a>
+
+      <div class="flex items-center gap-2 mb-5 flex-wrap">
+        <span class="inline-flex items-center px-3 py-1 rounded-full bg-tertiary-container/30 text-on-tertiary-container text-xs font-label font-semibold uppercase tracking-wider">
+          {categoryLabel[entry.data.category] ?? entry.data.category}
+        </span>
+        <time
+          datetime={entry.data.date.toISOString()}
+          class="text-sm text-on-surface-variant"
+        >
+          {fmt.format(entry.data.date)}
+        </time>
+      </div>
+
+      <h1 class="font-headline text-3xl md:text-5xl text-primary uppercase leading-tight mb-6">
+        {entry.data.title}
+      </h1>
+
+      <p class="text-lg md:text-xl text-on-surface-variant mb-10">
+        {entry.data.excerpt}
+      </p>
+
+      <div
+        class="prose prose-lg max-w-none text-on-surface
+          prose-headings:font-headline prose-headings:text-primary prose-headings:uppercase
+          prose-h2:text-2xl md:prose-h2:text-3xl prose-h2:mt-10 prose-h2:mb-4
+          prose-h3:text-xl prose-h3:text-primary
+          prose-p:text-base prose-p:text-on-surface-variant prose-p:leading-relaxed
+          prose-a:text-primary hover:prose-a:text-tertiary-container prose-a:underline
+          prose-strong:text-on-surface
+          prose-ul:text-on-surface-variant prose-ol:text-on-surface-variant
+          prose-li:my-1"
+      >
+        <Content />
+      </div>
+
+      {entry.data.tags.length > 0 && (
+        <div class="flex flex-wrap gap-2 mt-12 pt-8 border-t border-outline-variant">
+          {entry.data.tags.map((t) => (
+            <span class="text-xs uppercase tracking-wider text-on-surface-variant border border-outline-variant rounded px-3 py-1">
+              #{t}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {entry.data.author && (
+        <p class="mt-6 text-sm text-on-surface-variant">
+          Publicado por <strong>{entry.data.author}</strong>
+        </p>
+      )}
+    </div>
+  </article>
+
+  {related.length > 0 && (
+    <section class="py-16 md:py-20 bg-surface-container-low border-t border-outline-variant">
+      <div class="max-w-[1280px] mx-auto px-5 md:px-16">
+        <h2 class="font-headline text-2xl md:text-3xl text-primary uppercase mb-8">
+          Más novedades
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {related.map((n) => (
+            <a
+              href={`/novedades/${n.id}`}
+              class="group flex flex-col bg-surface-container-lowest rounded-lg border border-outline-variant p-6 hover:border-primary/40 hover:shadow-brand transition-all"
+            >
+              <div class="flex items-center gap-2 mb-3">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-tertiary-container/30 text-on-tertiary-container text-[11px] font-label font-semibold uppercase tracking-wider">
+                  {categoryLabel[n.data.category] ?? n.data.category}
+                </span>
+              </div>
+              <h3 class="font-headline text-lg text-primary leading-tight mb-2 group-hover:text-tertiary-container transition-colors">
+                {n.data.title}
+              </h3>
+              <time
+                datetime={n.data.date.toISOString()}
+                class="text-xs text-on-surface-variant"
+              >
+                {fmt.format(n.data.date)}
+              </time>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+</BaseLayout>

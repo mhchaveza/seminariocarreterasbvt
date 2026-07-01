@@ -1,0 +1,99 @@
+---
+import { getCollection } from "astro:content";
+
+interface Props {
+  limit?: number;
+  showHeader?: boolean;
+}
+
+const { limit = 4, showHeader = true } = Astro.props;
+
+const all = await getCollection("news", ({ data }) => !data.draft);
+const items = all
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .slice(0, limit);
+
+const categoryLabel: Record<string, string> = {
+  anuncio: "Anuncio",
+  agenda: "Agenda",
+  inscripciones: "Inscripciones",
+  patrocinio: "Patrocinio",
+  convocatoria: "Convocatoria",
+  logistica: "Logística",
+};
+
+const fmt = new Intl.DateTimeFormat("es-CO", {
+  day: "2-digit",
+  month: "long",
+  year: "numeric",
+});
+---
+
+<section id="novedades" class="py-20 md:py-28 bg-surface">
+  <div class="max-w-[1280px] mx-auto px-5 md:px-16">
+    {
+      showHeader && (
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
+          <div class="max-w-2xl">
+            <p class="font-label text-sm uppercase tracking-widest text-tertiary mb-3">
+              Novedades del seminario
+            </p>
+            <h2 class="font-headline text-3xl md:text-5xl text-primary uppercase leading-tight">
+              Más novedades
+            </h2>
+            <p class="text-base md:text-lg text-on-surface-variant mt-4">
+              Anuncios, fechas clave, plazos y novedades para que no te pierdas
+              ningún detalle.
+            </p>
+          </div>
+          <a
+            href="/novedades"
+            class="inline-flex items-center font-label text-sm font-semibold uppercase text-primary hover:text-tertiary-container transition-colors"
+          >
+            Ver todas
+            <span class="material-symbols-outlined ml-1 text-base">
+              arrow_forward
+            </span>
+          </a>
+        </div>
+      )
+    }
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {
+        items.map((n) => (
+          <a
+            href={`/novedades/${n.id}`}
+            class="group flex flex-col bg-surface-container-lowest rounded-lg border border-outline-variant overflow-hidden hover:border-primary/40 hover:shadow-brand transition-all"
+          >
+            <div class="p-6 flex flex-col flex-grow">
+              <div class="flex items-center gap-2 mb-4">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-tertiary-container/30 text-on-tertiary-container text-[11px] font-label font-semibold uppercase tracking-wider">
+                  {categoryLabel[n.data.category] ?? n.data.category}
+                </span>
+                <time
+                  datetime={n.data.date.toISOString()}
+                  class="text-xs text-on-surface-variant"
+                >
+                  {fmt.format(n.data.date)}
+                </time>
+              </div>
+              <h3 class="font-headline text-lg text-primary leading-tight mb-3 group-hover:text-tertiary-container transition-colors">
+                {n.data.title}
+              </h3>
+              <p class="text-sm text-on-surface-variant flex-grow">
+                {n.data.excerpt}
+              </p>
+              <span class="mt-5 inline-flex items-center font-label text-xs font-semibold uppercase tracking-wider text-primary">
+                Leer más
+                <span class="material-symbols-outlined ml-1 text-sm">
+                  arrow_forward
+                </span>
+              </span>
+            </div>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</section>

@@ -1,0 +1,150 @@
+---
+interface Props {
+  eyebrow?: string;
+  title: string;
+  subtitle?: string;
+  image?: string;
+  primaryCta?: { href: string; label: string };
+  secondaryCta?: { href: string; label: string };
+  tertiaryCta?: { href: string; label: string };
+  date?: string;
+  locationLabel?: string;
+  showLogo?: boolean;
+  bottomFade?: boolean;
+  logoSrc?: string;
+  logoShape?: "circle" | "rect";
+  logoAlt?: string;
+}
+
+const {
+  eyebrow,
+  title,
+  subtitle,
+  image = "/images/vias-terciarias-colombia-datos.jpg",
+  primaryCta,
+  secondaryCta,
+  tertiaryCta,
+  date,
+  locationLabel,
+  showLogo = true,
+  bottomFade = true,
+  logoSrc = "/images/logo_final.png",
+  logoShape = "circle",
+  logoAlt = "II Seminario Internacional de Carreteras de Bajo Volumen",
+} = Astro.props;
+---
+
+<header
+  class="relative w-full min-h-[640px] md:min-h-[760px] flex items-center justify-center bg-primary text-on-primary overflow-hidden"
+>
+  <!-- Background image + gradient -->
+  <div class="absolute inset-0 z-0">
+    <img
+      src={image}
+      alt=""
+      aria-hidden="true"
+      class="w-full h-full object-cover"
+      loading="eager"
+      fetchpriority="high"
+    />
+    <div class="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/85 to-primary/55"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-primary/70 via-transparent to-primary/30"></div>
+    <div class="absolute inset-0 bg-topo opacity-60 mix-blend-overlay"></div>
+  </div>
+
+  <div class="relative z-20 w-full max-w-[1280px] mx-auto px-5 md:px-10 lg:px-16 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-6 items-center py-16 md:py-24">
+    <div class="md:col-span-8 lg:col-span-8 space-y-6 md:space-y-7">
+      {(date || locationLabel) && (
+        <div class="flex flex-wrap items-center gap-2">
+          {date && (
+            <div class="inline-flex items-center gap-2 bg-tertiary-fixed/15 backdrop-blur-md px-4 py-2 rounded-full border border-tertiary-fixed/40">
+              <span class="material-symbols-outlined text-tertiary-fixed text-xl">calendar_today</span>
+              <span class="font-label text-xs sm:text-sm font-semibold uppercase tracking-wider text-tertiary-fixed">{date}</span>
+            </div>
+          )}
+          {locationLabel && (
+            <div class="inline-flex items-center gap-2 bg-tertiary-fixed/15 backdrop-blur-md px-4 py-2 rounded-full border border-tertiary-fixed/40">
+              <span class="material-symbols-outlined text-tertiary-fixed text-xl">location_on</span>
+              <span class="font-label text-xs sm:text-sm font-semibold text-tertiary-fixed">{locationLabel}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {eyebrow && (
+        <p class="font-label text-xs sm:text-sm uppercase tracking-[0.25em] text-tertiary-fixed">{eyebrow}</p>
+      )}
+
+      <h1 class="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.02] uppercase">
+        <Fragment set:html={title} />
+      </h1>
+
+      {subtitle && (
+        <p class="text-base sm:text-lg md:text-xl text-on-primary/90 max-w-2xl border-l-4 border-tertiary-fixed pl-4">
+          {subtitle}
+        </p>
+      )}
+
+      {(primaryCta || secondaryCta || tertiaryCta) && (
+        <div class="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 pt-2">
+          {primaryCta && (
+            <a
+              href={primaryCta.href}
+              class="inline-flex items-center justify-center px-6 sm:px-7 py-3.5 sm:py-4 bg-tertiary-fixed text-on-tertiary-fixed font-label text-sm font-semibold uppercase rounded-md hover:bg-tertiary-fixed-dim transition-all shadow-brand hover:-translate-y-0.5"
+            >
+              {primaryCta.label}
+              <span class="material-symbols-outlined ml-2 text-base">arrow_forward</span>
+            </a>
+          )}
+          {secondaryCta && (
+            <a
+              href={secondaryCta.href}
+              class="inline-flex items-center justify-center px-6 sm:px-7 py-3.5 sm:py-4 bg-transparent border-2 border-on-primary/80 text-on-primary font-label text-sm font-semibold uppercase rounded-md hover:bg-on-primary/10 transition-colors"
+            >
+              {secondaryCta.label}
+            </a>
+          )}
+          {tertiaryCta && (
+            <a
+              href={tertiaryCta.href}
+              class="inline-flex items-center justify-center px-6 sm:px-7 py-3.5 sm:py-4 bg-transparent text-tertiary-fixed font-label text-sm font-semibold uppercase rounded-md hover:text-on-primary hover:bg-on-primary/5 transition-colors underline underline-offset-4 decoration-tertiary-fixed/50 hover:decoration-on-primary"
+            >
+              {tertiaryCta.label}
+              <span class="material-symbols-outlined ml-2 text-base">handshake</span>
+            </a>
+          )}
+        </div>
+      )}
+    </div>
+
+    {showLogo && (
+      <div class="hidden md:flex md:col-span-4 lg:col-span-4 justify-center md:justify-end">
+        {logoShape === "circle" ? (
+          <div class="relative w-full max-w-[280px] aspect-square flex items-center justify-center">
+            <div class="absolute inset-0 border-2 border-tertiary-fixed/30 rounded-full border-dashed animate-spin-slow"></div>
+            <div class="absolute inset-1 border border-on-primary/15 rounded-full"></div>
+            <img
+              src={logoSrc}
+              alt={logoAlt}
+              class="relative w-[94%] h-[94%] object-contain rounded-full bg-white p-4 shadow-2xl ring-4 ring-tertiary-fixed/40"
+              loading="eager"
+            />
+          </div>
+        ) : (
+          <div class="relative w-full max-w-[320px] bg-white rounded-lg shadow-2xl ring-4 ring-tertiary-fixed/40 p-6 flex items-center justify-center">
+            <img
+              src={logoSrc}
+              alt={logoAlt}
+              class="w-full h-auto object-contain"
+              loading="eager"
+            />
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+
+  {bottomFade && (
+    <div class="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-surface to-transparent z-10 pointer-events-none"></div>
+  )}
+</header>

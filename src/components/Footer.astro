@@ -1,0 +1,100 @@
+---
+import { SITE } from "../consts";
+import { getEventLocation } from "../lib/solsticio";
+
+const location = await getEventLocation();
+const year = new Date().getFullYear();
+---
+
+<footer class="relative w-full py-14 md:py-16 px-5 md:px-10 lg:px-16 bg-primary text-on-primary mt-0 overflow-hidden">
+  <div class="absolute inset-0 bg-topo opacity-40 pointer-events-none"></div>
+  <div class="relative max-w-[1280px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8">
+    <div class="md:col-span-5 space-y-4">
+      <div class="flex items-center gap-3">
+        <img
+          src="/images/logo_blanco.png"
+          alt=""
+          width="56"
+          height="56"
+          class="h-16 md:h-20 w-auto object-contain"
+          loading="lazy"
+        />
+      </div>
+      <p class="text-sm text-on-primary/80 max-w-md">
+        Carreteras de bajo volumen de tránsito.<br />
+        Conectividad · Territorio · Sostenibilidad
+      </p>
+      <div class="pt-3">
+        <span class="block font-label text-[11px] uppercase tracking-widest text-on-primary/60 mb-2">Organiza</span>
+        <a
+          href={SITE.organizer.url}
+          target="_blank"
+          rel="noopener"
+          class="inline-flex flex-col items-start gap-1 hover:opacity-90 transition"
+          aria-label="Universidad de Medellín"
+        >
+          <img
+            src="/images/logo-universidad-de-medellin-blanco.png"
+            alt="Universidad de Medellín"
+            width="220"
+            height="60"
+            class="h-12 w-auto object-contain"
+            loading="lazy"
+          />
+          <span class="font-label text-[9px] uppercase tracking-[0.2em] text-on-primary/70">
+            Vigilada Mineducación
+          </span>
+        </a>
+      </div>
+      <p class="text-xs text-on-primary/60 pt-2">
+        © {year} Universidad de Medellín. Todos los derechos reservados.
+      </p>
+    </div>
+
+    <div class="md:col-span-3 flex flex-col space-y-3">
+      <h4 class="font-label text-sm font-semibold uppercase text-tertiary-fixed mb-1 tracking-wider">Enlaces</h4>
+      <a href="/" class="text-sm text-on-primary/80 hover:text-tertiary-fixed transition-colors">Inicio</a>
+      <a href="/#objetivo" class="text-sm text-on-primary/80 hover:text-tertiary-fixed transition-colors">Objetivo</a>
+      <a href="/#agenda" class="text-sm text-on-primary/80 hover:text-tertiary-fixed transition-colors">Agenda</a>
+      <a href="/#panelistas" class="text-sm text-on-primary/80 hover:text-tertiary-fixed transition-colors">Panelistas</a>
+      <a href="/patrocinio" class="text-sm text-on-primary/80 hover:text-tertiary-fixed transition-colors">Patrocinio</a>
+      <a href="/inscripcion" class="text-sm text-on-primary/80 hover:text-tertiary-fixed transition-colors">Preinscripción</a>
+    </div>
+
+    <div class="md:col-span-4 flex flex-col space-y-4">
+      <h4 class="font-label text-sm font-semibold uppercase text-tertiary-fixed mb-1 tracking-wider">Contacto</h4>
+      <div class="flex items-start gap-2 text-sm text-on-primary/85">
+        <span class="material-symbols-outlined text-base mt-0.5 text-tertiary-fixed">badge</span>
+        <span>
+          <strong class="block text-on-primary">Coordinación comercial</strong>
+          {SITE.contact.comercial.name}<br />
+          <a href={`tel:${SITE.contact.comercial.phone.replace(/\s/g, "")}`} class="hover:text-tertiary-fixed whitespace-nowrap">{SITE.contact.comercial.phone}</a>
+        </span>
+      </div>
+      <div class="flex items-start gap-2 text-sm text-on-primary/85">
+        <span class="material-symbols-outlined text-base mt-0.5 text-tertiary-fixed">support_agent</span>
+        <span>
+          <strong class="block text-on-primary">Coordinación logística</strong>
+          {SITE.contact.logistica.name}<br />
+          <a href={`tel:${SITE.contact.logistica.phone.replace(/\s/g, "")}`} class="hover:text-tertiary-fixed whitespace-nowrap">{SITE.contact.logistica.phone}</a>
+        </span>
+      </div>
+      <div class="flex items-start gap-2 text-sm text-on-primary/85">
+        <span class="material-symbols-outlined text-base mt-0.5 text-tertiary-fixed">mail</span>
+        <span>
+          <strong class="block text-on-primary">Correo del evento</strong>
+          <a href={`mailto:${SITE.contact.email}`} class="hover:text-tertiary-fixed break-all">{SITE.contact.email}</a>
+        </span>
+      </div>
+      <div class="flex items-start gap-2 text-sm text-on-primary/85">
+        <span class="material-symbols-outlined text-base mt-0.5 text-tertiary-fixed">location_on</span>
+        <span>
+          <strong class="block text-on-primary">Lugar del evento</strong>
+          {location.name}<br />
+          {location.venue}<br />
+          {location.address} · {location.city}
+        </span>
+      </div>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,583 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Hero from "../components/Hero.astro";
+import SectionHeader from "../components/SectionHeader.astro";
+import Agenda from "../components/Agenda.astro";
+import AgendaComingSoon from "../components/AgendaComingSoon.astro";
+import Speakers from "../components/Speakers.astro";
+import IncludesBar from "../components/IncludesBar.astro";
+import News from "../components/News.astro";
+import NewsTicker from "../components/NewsTicker.astro";
+import OrganizerStrip from "../components/OrganizerStrip.astro";
+import SponsorsBar from "../components/SponsorsBar.astro";
+import { getCollection } from "astro:content";
+import { getEventLocation, getGalleryPhotos } from "../lib/solsticio";
+
+const location = await getEventLocation();
+
+// Galerías gestionadas desde el panel de Solsticio (por slug). Si alguna no
+// está publicada o la API falla, cada sección usa sus imágenes locales.
+const [territorioPhotos, referenciaPhotos, laboratorioPhotos, primeraEdicionPhotos] =
+  await Promise.all([
+    getGalleryPhotos("territorio"),
+    getGalleryPhotos("imagenes-de-referencia"),
+    getGalleryPhotos("laboratorio"),
+    getGalleryPhotos("primera-edicion"),
+  ]);
+
+// "imagenes-de-referencia" trae 3 fotos: principal y detalle de EL OBJETIVO,
+// y la franja lateral de ¿POR QUÉ ASISTIR?
+const objetivoMain = referenciaPhotos[1]?.url ?? "/images/objetivo-2.jpg";
+const objetivoDetail = referenciaPhotos[0]?.url ?? "/images/objetivo.jpg";
+const beneficiosImage =
+  referenciaPhotos[2]?.url ?? "/images/que-incluye-tu-inscripcion.jpg";
+
+const topics = (await getCollection("topics")).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+
+const audiences = [
+  {
+    icon: "account_balance",
+    title: "Sector Público",
+    desc: "Profesionales y tomadores de decisión gubernamentales.",
+    image: "/images/lab/lab-1.jpg",
+  },
+  {
+    icon: "engineering",
+    title: "Ingenieros & Consultores",
+    desc: "Constructores y consultores de infraestructura vial.",
+    image: "/images/lab/lab-2.jpg",
+  },
+  {
+    icon: "school",
+    title: "Academia",
+    desc: "Investigadores, docentes y estudiantes universitarios.",
+    image: "/images/lab/lab-3.jpg",
+  },
+  {
+    icon: "language",
+    title: "Organismos Internacionales",
+    desc: "Entidades de cooperación y desarrollo territorial.",
+    image: "/images/lab/lab-4.jpg",
+  },
+  {
+    icon: "factory",
+    title: "Sector Empresarial",
+    desc: "Empresas proveedoras, constructoras y de tecnología vial.",
+    image: "/images/lab/lab-5.jpg",
+  },
+];
+
+const benefits = [
+  {
+    icon: "forum",
+    title: "Conferencias internacionales",
+    desc: "Acceso a expertos globales en infraestructura de bajo volumen.",
+  },
+  {
+    icon: "hub",
+    title: "Networking estratégico",
+    desc: "Conecta con tomadores de decisión del sector público y privado.",
+  },
+  {
+    icon: "workspace_premium",
+    title: "Certificado",
+    desc: "Certificación de asistencia avalada por la Universidad de Medellín.",
+  },
+  {
+    icon: "storefront",
+    title: "Muestra comercial",
+    desc: "Conoce las últimas soluciones tecnológicas y materiales.",
+  },
+];
+
+const tickets = [
+  { name: "Público General", price: "$500.000", priceNum: 500000, badge: null },
+  {
+    name: "Estudiantes",
+    price: "$350.000",
+    priceNum: 350000,
+    badge: "pregrado y posgrado",
+  },
+  {
+    name: "Virtual",
+    price: "$350.000",
+    priceNum: 350000,
+    badge: "modalidad remota",
+  },
+];
+
+const galleryFallback = [
+  "/images/vias-territorio/vias-territorio-1.jpg",
+  "/images/vias-territorio/vias-territorio-2.jpg",
+  "/images/vias-territorio/vias-territorio-3.jpg",
+  "/images/vias-territorio/vias-territorio-4.jpg",
+  "/images/objetivo.jpg",
+  "/images/ejes-tematicos.jpg",
+  "/images/a-quienes-nos-dirigimos-1.jpg",
+  "/images/que-incluye-tu-inscripcion.jpg",
+];
+
+const gallery = territorioPhotos.length ?
+  territorioPhotos.map((p) => p.url) :
+  galleryFallback;
+
+// Franja bajo el hero: 6 celdas; si la galería trae menos fotos se repiten.
+const heroStrip = territorioPhotos.length ?
+  Array.from({ length: 6 }, (_, i) => territorioPhotos[i % territorioPhotos.length].url) :
+  [
+    "/images/vias-territorio/vias-territorio-1.jpg",
+    "/images/vias-territorio/vias-territorio-2.jpg",
+    "/images/vias-territorio/vias-territorio-3.jpg",
+    "/images/vias-territorio/vias-territorio-4.jpg",
+    "/images/vias-territorio/vias-territorio-1.jpg",
+    "/images/vias-territorio/vias-territorio-2.jpg",
+  ];
+---
+
+<BaseLayout
+  description="II Seminario Internacional de Carreteras de Bajo Volumen de Tránsito. 1 y 2 de octubre 2026 en la Universidad de Medellín. Inscríbete y conecta con expertos en infraestructura vial rural."
+>
+  <NewsTicker />
+  <!-- HERO con foto real de carretera -->
+  <Hero
+    date={`1 y 2 de octubre 2026 · ${location.city}`}
+    locationLabel={`${location.name} · ${location.venue}`}
+    eyebrow="II edición"
+    title={`II Seminario Internacional<br/><span class="text-tertiary-fixed text-2xl md:text-4xl block mt-3">de carreteras de bajo volumen de tránsito</span>`}
+    subtitle="Dos jornadas de conferencias internacionales, paneles técnicos y muestra comercial sobre carreteras de bajo volumen de tránsito."
+    primaryCta={{ href: "/inscripcion", label: "Asegura tu cupo" }}
+    secondaryCta={{ href: "#agenda", label: "Ver agenda" }}
+    tertiaryCta={{ href: "/patrocinio", label: "Patrocinios" }}
+    image="/images/banner_main.jpg"
+    bottomFade={false}
+  />
+
+  <!-- Tira de imágenes parallax / banda inferior del hero -->
+  <section aria-hidden="true" class="-mt-1 bg-primary">
+    <div class="grid grid-cols-6 gap-px bg-primary">
+      {
+        heroStrip.map((src) => (
+          <div class="h-16 sm:h-20 md:h-28 overflow-hidden relative group">
+            <img
+              src={src}
+              alt=""
+              class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+              loading="lazy"
+            />
+            <div class="absolute inset-0 bg-primary/40 group-hover:bg-primary/0 transition-colors" />
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <OrganizerStrip variant="light" />
+  <SponsorsBar />
+
+  <!-- OBJETIVO con imagen split -->
+  <section id="objetivo" class="py-20 md:py-28 bg-surface">
+    <div
+      class="max-w-[1280px] mx-auto px-5 md:px-16 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center"
+    >
+      <div class="lg:col-span-6 relative">
+        <div class="aspect-[4/5] overflow-hidden rounded-lg shadow-brand">
+          <img
+            src={objetivoMain}
+            alt="Audiencia del seminario"
+            class="w-full h-full object-cover"
+            loading="lazy"
+          />
+        </div>
+        <div
+          class="hidden md:block absolute -bottom-8 -right-8 w-56 aspect-square overflow-hidden rounded-lg ring-8 ring-surface shadow-brand"
+        >
+          <img
+            src={objetivoDetail}
+            alt=""
+            class="w-full h-full object-cover"
+            loading="lazy"
+          />
+        </div>
+        <div
+          class="absolute -top-6 -left-6 bg-tertiary-container text-on-tertiary-container px-5 py-3 rounded-md font-label text-xs font-semibold uppercase tracking-widest shadow-brand"
+        >
+          II Edición · 2026
+        </div>
+      </div>
+
+      <div class="lg:col-span-6">
+        <p
+          class="font-label text-sm uppercase tracking-widest text-tertiary mb-3"
+        >
+          Conectividad · Territorio · Sostenibilidad
+        </p>
+        <h2
+          class="font-headline text-4xl md:text-5xl text-primary uppercase leading-tight mb-6"
+        >
+          El objetivo
+        </h2>
+        <p class="text-lg text-on-surface-variant mb-5">
+          Reunir a expertos, entidades públicas, empresas y academia para
+          compartir conocimientos, experiencias y soluciones innovadoras en
+          infraestructura vial.
+        </p>
+        <p class="text-base text-on-surface-variant mb-8">
+          Promovemos el desarrollo de alternativas <strong
+            >sostenibles, eficientes y adaptadas al contexto colombiano</strong
+          >, contribuyendo al fortalecimiento de la conectividad, la
+          competitividad y el desarrollo regional.
+        </p>
+
+        <div
+          class="grid grid-cols-3 gap-4 border-l-4 border-tertiary-container pl-6"
+        >
+          <div>
+            <div class="font-display text-3xl md:text-4xl text-primary">
+              142K
+            </div>
+            <div
+              class="font-label text-[11px] uppercase tracking-wider text-on-surface-variant"
+            >
+              km de red terciaria
+            </div>
+          </div>
+          <div>
+            <div class="font-display text-3xl md:text-4xl text-primary">
+              80%
+            </div>
+            <div
+              class="font-label text-[11px] uppercase tracking-wider text-on-surface-variant"
+            >
+              producción agropecuaria
+            </div>
+          </div>
+          <div>
+            <div class="font-display text-3xl md:text-4xl text-primary">
+              70%
+            </div>
+            <div
+              class="font-label text-[11px] uppercase tracking-wider text-on-surface-variant"
+            >
+              malla vial nacional
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EJES TEMÁTICOS con fondo full-bleed -->
+  <section id="ejes" class="relative py-20 md:py-28 overflow-hidden">
+    <div class="absolute inset-0 z-0">
+      <img
+        src="/images/ejes-tematicos.jpg"
+        alt=""
+        class="w-full h-full object-cover"
+        loading="lazy"
+      />
+      <div class="absolute inset-0 bg-primary/92"></div>
+      <div class="absolute inset-0 bg-topo opacity-40 mix-blend-overlay"></div>
+    </div>
+    <div class="relative z-10 max-w-[1280px] mx-auto px-5 md:px-16">
+      <div class="text-center mb-14">
+        <p
+          class="font-label text-sm uppercase tracking-widest text-tertiary-fixed mb-3"
+        >
+          Programa académico
+        </p>
+        <h2
+          class="font-headline text-4xl md:text-5xl uppercase text-on-primary leading-tight mb-4"
+        >
+          Ejes temáticos
+        </h2>
+        <p class="text-on-primary/80 max-w-2xl mx-auto">
+          Diez áreas clave que articulan la conversación técnica del seminario.
+        </p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        {
+          topics.map((t) => (
+            <div class="bg-on-primary/5 backdrop-blur-md p-5 rounded-lg border border-on-primary/15 flex flex-col items-start hover:bg-tertiary-fixed/10 hover:border-tertiary-fixed/40 transition-all">
+              <span class="material-symbols-outlined text-3xl text-tertiary-fixed mb-3">
+                {t.data.icon}
+              </span>
+              <h3 class="font-label text-sm font-semibold uppercase text-on-primary leading-snug">
+                {t.data.title}
+              </h3>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- BENEFICIOS con franja lateral con foto -->
+  <section class="bg-surface">
+    <div class="max-w-[1280px] mx-auto grid grid-cols-1 lg:grid-cols-12">
+      <div class="lg:col-span-5 relative min-h-[320px] lg:min-h-0">
+        <img
+          src={beneficiosImage}
+          alt=""
+          class="absolute inset-0 w-full h-full object-cover"
+          loading="lazy"
+        />
+        <div
+          class="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-primary/85 via-primary/60 to-primary/30"
+        >
+        </div>
+        <div
+          class="relative z-10 p-8 md:p-12 h-full flex flex-col justify-end text-on-primary"
+        >
+          <p
+            class="font-label text-xs uppercase tracking-widest text-tertiary-fixed mb-3"
+          >
+            Beneficios
+          </p>
+          <h2
+            class="font-headline text-3xl md:text-4xl uppercase leading-tight"
+          >
+            ¿Por qué asistir?
+          </h2>
+        </div>
+      </div>
+      <div
+        class="lg:col-span-7 p-8 md:p-12 lg:p-16 grid grid-cols-1 sm:grid-cols-2 gap-6 bg-surface-container-low"
+      >
+        {
+          benefits.map((b) => (
+            <div class="bg-surface-container-lowest p-6 rounded-lg border border-outline-variant">
+              <span class="material-symbols-outlined text-3xl text-tertiary-container mb-3">
+                {b.icon}
+              </span>
+              <h3 class="font-headline text-lg text-primary uppercase mb-2 leading-tight">
+                {b.title}
+              </h3>
+              <p class="text-sm text-on-surface-variant">{b.desc}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- AGENDA próximamente -->
+  <AgendaComingSoon />
+
+  <!-- PANELISTAS -->
+  <section id="panelistas" class="py-20 md:py-28 bg-surface-container-low">
+    <div class="max-w-[1280px] mx-auto px-5 md:px-16">
+      <SectionHeader
+        eyebrow="Voces expertas"
+        title="Panelistas"
+        subtitle="Líderes nacionales e internacionales en infraestructura vial de bajo volumen."
+      />
+      <Speakers />
+    </div>
+  </section>
+
+  <!-- AUDIENCIAS con foto por tarjeta -->
+  <section class="py-20 md:py-28 bg-surface">
+    <div class="max-w-[1280px] mx-auto px-5 md:px-16">
+      <SectionHeader
+        eyebrow="Audiencia"
+        title="¿A quién nos dirigimos?"
+        subtitle="Profesionales que están transformando la conectividad rural."
+      />
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {
+          audiences.map((a) => (
+            <div class="group relative overflow-hidden rounded-lg border border-outline-variant aspect-[3/4]">
+              <img
+                src={a.image}
+                alt=""
+                class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-primary via-primary/70 to-transparent" />
+              <div class="relative h-full flex flex-col justify-end p-5 text-on-primary">
+                <span class="material-symbols-outlined text-3xl text-tertiary-fixed mb-2">
+                  {a.icon}
+                </span>
+                <h4 class="font-label text-sm font-semibold uppercase mb-2 leading-tight">
+                  {a.title}
+                </h4>
+                <p class="text-xs text-on-primary/85">{a.desc}</p>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <IncludesBar />
+
+  <!-- INSCRIPCIONES -->
+  <section
+    id="inscripciones"
+    class="py-20 md:py-28 bg-surface-container-low bg-topo"
+  >
+    <div class="max-w-[1280px] mx-auto px-5 md:px-16">
+      <SectionHeader
+        eyebrow="Inversión"
+        title="Inscríbete al seminario"
+        subtitle="Tres modalidades para acompañarnos los días 1 y 2 de octubre de 2026."
+      />
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        {
+          tickets.map((t) => (
+            <div
+              class="rounded-lg p-8 text-center border-2 flex flex-col bg-surface-container-lowest border-outline-variant hover:border-primary/40 hover:shadow-brand transition-all"
+            >
+              <h3 class="font-headline text-2xl uppercase mb-2 text-primary">
+                {t.name}
+              </h3>
+              {t.badge && (
+                <p class="text-xs text-on-surface-variant mb-2">
+                  {t.badge}
+                </p>
+              )}
+              <div class="font-display text-4xl my-4 text-tertiary-container">
+                {t.price}
+                <span class="text-sm font-body block opacity-70 mt-1">COP</span>
+              </div>
+              <a
+                href="/inscripcion"
+                class="inline-block mt-auto px-6 py-3 rounded-md w-full font-label text-sm font-semibold uppercase transition-colors bg-primary text-on-primary hover:bg-primary-container"
+              >
+                Preinscribirme
+              </a>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- GALERÍA / mosaic -->
+  <section class="py-16 md:py-20 bg-surface">
+    <div class="max-w-[1280px] mx-auto px-5 md:px-16">
+      <SectionHeader
+        eyebrow="Imágenes"
+        title="El territorio en imágenes"
+        subtitle="Vías, comunidades y conocimiento que se cruzan en el seminario."
+      />
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {
+          gallery.map((src, i) => (
+            <div
+              class={`overflow-hidden rounded-lg ${i === 0 ? "col-span-2 row-span-2 aspect-square" : "aspect-square"}`}
+            >
+              <img
+                src={src}
+                alt=""
+                class="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <News />
+
+  <!-- PATROCINIO CTA con foto stand -->
+  <section class="relative py-20 md:py-24 overflow-hidden text-on-primary">
+    <div class="absolute inset-0 z-0">
+      <img
+        src="/images/stand-premium.jpg"
+        alt=""
+        class="w-full h-full object-cover"
+        loading="lazy"
+      />
+      <div
+        class="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary/60"
+      >
+      </div>
+    </div>
+    <div
+      class="relative z-10 max-w-[1280px] mx-auto px-5 md:px-16 grid grid-cols-1 md:grid-cols-12 gap-8 items-center"
+    >
+      <div class="md:col-span-8">
+        <p
+          class="font-label text-sm uppercase tracking-widest text-tertiary-fixed mb-3"
+        >
+          Para empresas y aliados
+        </p>
+        <h2
+          class="font-headline text-3xl md:text-5xl uppercase leading-tight mb-4"
+        >
+          Conviértete en patrocinador del seminario
+        </h2>
+        <p class="text-lg text-on-primary/90 max-w-2xl">
+          Conecta tu marca con líderes del sector vial y posiciónate como
+          referente en innovación y desarrollo territorial. Stands, kit de
+          bienvenida, conferencias magistrales y más opciones disponibles.
+        </p>
+      </div>
+      <div class="md:col-span-4 flex md:justify-end">
+        <a
+          href="/patrocinio"
+          class="inline-flex items-center justify-center px-7 py-4 bg-tertiary-fixed text-on-tertiary-fixed font-label text-sm font-semibold uppercase rounded-md hover:bg-tertiary-fixed-dim transition-colors shadow-brand"
+        >
+          Ver opciones de patrocinio
+          <span class="material-symbols-outlined ml-2 text-base"
+            >arrow_forward</span
+          >
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Galerías sutiles: laboratorio y primera edición -->
+  {
+    (laboratorioPhotos.length > 0 || primeraEdicionPhotos.length > 0) && (
+      <section class="py-12 md:py-16 bg-surface border-t border-outline-variant">
+        <div class="max-w-[1280px] mx-auto px-5 md:px-16 space-y-10">
+          {laboratorioPhotos.length > 0 && (
+            <div>
+              <p class="font-label text-xs font-semibold uppercase tracking-widest text-tertiary mb-4">
+                Laboratorio
+              </p>
+              <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
+                {laboratorioPhotos.map((p) => (
+                  <div class="aspect-square overflow-hidden rounded-md">
+                    <img
+                      src={p.url}
+                      alt={p.caption ?? ""}
+                      class="w-full h-full object-cover opacity-90 hover:opacity-100 hover:scale-105 transition-all duration-500"
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {primeraEdicionPhotos.length > 0 && (
+            <div>
+              <p class="font-label text-xs font-semibold uppercase tracking-widest text-tertiary mb-4">
+                Primera edición
+              </p>
+              <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
+                {primeraEdicionPhotos.map((p) => (
+                  <div class="aspect-square overflow-hidden rounded-md">
+                    <img
+                      src={p.url}
+                      alt={p.caption ?? ""}
+                      class="w-full h-full object-cover opacity-90 hover:opacity-100 hover:scale-105 transition-all duration-500"
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    )
+  }
+</BaseLayout>
