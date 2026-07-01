@@ -10,8 +10,7 @@ import News from "../components/News.astro";
 import NewsTicker from "../components/NewsTicker.astro";
 import OrganizerStrip from "../components/OrganizerStrip.astro";
 import SponsorsBar from "../components/SponsorsBar.astro";
-import { getCollection } from "astro:content";
-import { getEventLocation, getGalleryPhotos } from "../lib/solsticio";
+import { getEventLocation, getGalleryPhotos, getTopics } from "../lib/solsticio";
 
 const location = await getEventLocation();
 
@@ -32,9 +31,7 @@ const objetivoDetail = referenciaPhotos[0]?.url ?? "/images/objetivo.jpg";
 const beneficiosImage =
   referenciaPhotos[2]?.url ?? "/images/que-incluye-tu-inscripcion.jpg";
 
-const topics = (await getCollection("topics")).sort(
-  (a, b) => a.data.order - b.data.order,
-);
+const topics = await getTopics();
 
 const audiences = [
   {

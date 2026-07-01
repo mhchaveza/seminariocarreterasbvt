@@ -1,21 +1,15 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { getCollection, render } from "astro:content";
+import { getNews, getNewsById } from "../../lib/solsticio";
 
-// Ruta dinámica de detalle: se prerenderiza a HTML estático en el build
-// (usa getStaticPaths); el resto del sitio corre en el servidor Node.
-export const prerender = true;
+// Detalle de novedad renderizado en el servidor en cada request (contenido
+// siempre fresco desde la API de Solsticio).
+const { slug } = Astro.params;
+const entry = slug ? await getNewsById(slug) : undefined;
 
-export async function getStaticPaths() {
-  const items = await getCollection("news", ({ data }) => !data.draft);
-  return items.map((n) => ({
-    params: { slug: n.id },
-    props: { entry: n },
-  }));
+if (!entry) {
+  return new Response(null, { status: 404, statusText: "Novedad no encontrada" });
 }
-
-const { entry } = Astro.props;
-const { Content } = await render(entry);
 
 const categoryLabel: Record<string, string> = {
   anuncio: "Anuncio",
@@ -33,10 +27,9 @@ const fmt = new Intl.DateTimeFormat("es-CO", {
 });
 
 // Related: 3 últimos distintos de este
-const all = await getCollection("news", ({ data }) => !data.draft);
+const all = await getNews();
 const related = all
-  .filter((n) => n.id !== entry.id)
-  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .filter((n) => !n.data.draft && n.id !== entry.id)
   .slice(0, 3);
 ---
 
@@ -84,9 +77,8 @@ const related = all
           prose-strong:text-on-surface
           prose-ul:text-on-surface-variant prose-ol:text-on-surface-variant
           prose-li:my-1"
-      >
-        <Content />
-      </div>
+        set:html={entry.bodyHtml}
+      />
 
       {entry.data.tags.length > 0 && (
         <div class="flex flex-wrap gap-2 mt-12 pt-8 border-t border-outline-variant">

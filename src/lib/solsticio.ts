@@ -1,21 +1,21 @@
-import type { Loader, LoaderContext } from "astro/loaders";
+import { marked } from "marked";
 import { API, SITE } from "../consts";
+import { cachedPerRequest } from "./request-cache";
 
 /**
- * Loaders del Content Layer de Astro que consumen la API pública de Solsticio
- * para el tenant y evento configurados en `consts.ts`. Mantienen el mismo shape
- * que los esquemas de `content.config.ts`, por lo que los componentes del sitio
- * no requieren cambios.
+ * Consumo en RUNTIME de la API pública de Solsticio para el tenant y evento
+ * configurados en `consts.ts`. Cada request vuelve a consultar la API (el
+ * contenido publicado en el panel se refleja sin re-desplegar); dentro del
+ * renderizado de una misma página las llamadas se deduplican vía
+ * `cachedPerRequest` (ver `request-cache.ts` + `middleware.ts`).
  *
- * La agenda NO se consume desde la API (se mantiene local).
+ * La agenda NO se consume desde la API (se mantiene local como colección de
+ * contenido en `content.config.ts`).
  */
 
 type ApiItem = Record<string, any>;
 
-async function fetchResource(
-  resource: string,
-  logger?: LoaderContext["logger"],
-): Promise<ApiItem[]> {
+async function fetchResource(resource: string): Promise<ApiItem[]> {
   const url =
     `${API.baseUrl}/tenants/${encodeURIComponent(API.tenantId)}` +
     `/events/${encodeURIComponent(API.eventId)}/${resource}`;
@@ -23,7 +23,7 @@ async function fetchResource(
   try {
     const res = await fetch(url);
     if (!res.ok) {
-      logger?.warn(
+      console.warn(
         `[solsticio] ${resource}: HTTP ${res.status}. ` +
           "¿El evento está publicado? Se usa una lista vacía.",
       );
@@ -31,16 +31,29 @@ async function fetchResource(
     }
     const json = await res.json();
     const list = json?.[resource];
-    const items = Array.isArray(list) ? list : [];
-    logger?.info(`[solsticio] ${resource}: ${items.length} desde la API (${API.eventId})`);
-    return items;
+    return Array.isArray(list) ? list : [];
   } catch (error) {
-    logger?.warn(
+    console.warn(
       `[solsticio] ${resource}: error de red (${(error as Error).message}). ` +
         "Se usa una lista vacía.",
     );
     return [];
   }
+}
+
+/** Extrae el cuerpo Markdown de un campo que puede ser string o RichTextContent. */
+function markdownBody(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object" && "body" in value) {
+    return String((value as { body?: unknown }).body ?? "");
+  }
+  return "";
+}
+
+/** Renderiza Markdown → HTML en runtime (para inyectar con `set:html`). */
+function renderMarkdown(md: string): string {
+  if (!md.trim()) return "";
+  return marked.parse(md, { async: false }) as string;
 }
 
 export interface EventLocation {
@@ -53,9 +66,7 @@ export interface EventLocation {
   mapUrl?: string;
 }
 
-let eventInfoPromise: Promise<ApiItem | null> | undefined;
-
-/** Documento publicado del evento en Solsticio, cacheado para todo el build. */
+/** Documento publicado del evento en Solsticio. */
 async function fetchEventInfo(): Promise<ApiItem | null> {
   const url =
     `${API.baseUrl}/tenants/${encodeURIComponent(API.tenantId)}` +
@@ -74,11 +85,10 @@ async function fetchEventInfo(): Promise<ApiItem | null> {
 /**
  * Ubicación del evento gestionada desde el panel de Solsticio
  * (`event.location`). Si la API no responde o el campo está incompleto,
- * se usa `SITE.location` como respaldo para no romper el build.
+ * se usa `SITE.location` como respaldo para no romper el render.
  */
 export async function getEventLocation(): Promise<EventLocation> {
-  eventInfoPromise ??= fetchEventInfo();
-  const event = await eventInfoPromise;
+  const event = await cachedPerRequest("event-info", fetchEventInfo);
   const loc = (event?.location ?? {}) as Record<string, unknown>;
   const text = (value: unknown): string =>
     typeof value === "string" ? value.trim() : "";
@@ -99,21 +109,13 @@ export interface GalleryPhotoItem {
   caption?: string;
 }
 
-const galleryPromises = new Map<string, Promise<GalleryPhotoItem[]>>();
-
 /**
  * Fotos de una galería publicada del evento, identificada por su slug en el
  * panel de Solsticio. Si la API no responde o la galería no existe, devuelve
  * una lista vacía para que el sitio use sus imágenes locales de respaldo.
- * Cacheado por slug para todo el build.
  */
 export async function getGalleryPhotos(slug: string): Promise<GalleryPhotoItem[]> {
-  let promise = galleryPromises.get(slug);
-  if (!promise) {
-    promise = fetchGalleryPhotos(slug);
-    galleryPromises.set(slug, promise);
-  }
-  return promise;
+  return cachedPerRequest(`gallery:${slug}`, () => fetchGalleryPhotos(slug));
 }
 
 async function fetchGalleryPhotos(slug: string): Promise<GalleryPhotoItem[]> {
@@ -143,15 +145,6 @@ async function fetchGalleryPhotos(slug: string): Promise<GalleryPhotoItem[]> {
   }
 }
 
-/** Extrae el cuerpo Markdown de un campo que puede ser string o RichTextContent. */
-function markdownBody(value: unknown): string {
-  if (typeof value === "string") return value;
-  if (value && typeof value === "object" && "body" in value) {
-    return String((value as { body?: unknown }).body ?? "");
-  }
-  return "";
-}
-
 const NEWS_CATEGORIES = [
   "anuncio",
   "agenda",
@@ -160,6 +153,7 @@ const NEWS_CATEGORIES = [
   "convocatoria",
   "logistica",
 ] as const;
+type NewsCategory = (typeof NEWS_CATEGORIES)[number];
 
 const SPONSOR_TIERS = [
   "premium",
@@ -167,132 +161,181 @@ const SPONSOR_TIERS = [
   "esencial",
   "patrocinador",
 ] as const;
+type SponsorTier = (typeof SPONSOR_TIERS)[number];
 
-export function speakersLoader(): Loader {
-  return {
-    name: "solsticio:speakers",
-    load: async ({ store, parseData, renderMarkdown, generateDigest, logger }) => {
-      const items = await fetchResource("speakers", logger);
-      store.clear();
+// Shapes con `{ id, data, ... }` para que los componentes usen `x.data.*` y
+// `x.id` igual que cuando venían de las colecciones de contenido.
 
-      for (const s of items) {
-        const id = s.slug || s.id;
-        if (!id) continue;
-
-        const data = await parseData({
-          id,
-          data: {
-            name: s.name || s.fullName || "",
-            title: s.title || s.role || "",
-            organization: s.organization || s.company || undefined,
-            country: s.country || undefined,
-            speakerType:
-              s.speakerType === "nacional" || s.speakerType === "internacional" ?
-                s.speakerType :
-                undefined,
-            photo: s.photoUrl || s.photo || undefined,
-            bio: s.bioShort || s.bio || undefined,
-            featured: Boolean(s.isFeatured ?? s.featured ?? false),
-            order: Number(s.order ?? s.sortOrder ?? 100),
-          },
-        });
-
-        const md = markdownBody(s.body);
-        const rendered = md ? await renderMarkdown(md) : undefined;
-        store.set({ id, data, body: md, rendered, digest: generateDigest(s) });
-      }
-    },
+export interface SpeakerItem {
+  id: string;
+  body: string;
+  bodyHtml: string;
+  data: {
+    name: string;
+    title: string;
+    organization?: string;
+    country?: string;
+    speakerType?: "nacional" | "internacional";
+    photo?: string;
+    bio?: string;
+    featured: boolean;
+    order: number;
   };
 }
 
-export function topicsLoader(): Loader {
-  return {
-    name: "solsticio:topics",
-    load: async ({ store, parseData, generateDigest, logger }) => {
-      const items = await fetchResource("topics", logger);
-      store.clear();
+export async function getSpeakers(): Promise<SpeakerItem[]> {
+  const items = await cachedPerRequest("speakers", () => fetchResource("speakers"));
 
-      for (const t of items) {
-        const id = t.slug || t.id;
-        if (!id) continue;
+  return items
+    .map((s): SpeakerItem | null => {
+      const id = s.slug || s.id;
+      if (!id) return null;
 
-        const data = await parseData({
-          id,
-          data: {
-            title: t.title || "",
-            icon: t.icon || "label",
-            order: Number(t.order ?? t.sortOrder ?? 100),
-          },
-        });
+      const body = markdownBody(s.body);
+      const speakerType =
+        s.speakerType === "nacional" || s.speakerType === "internacional" ?
+          s.speakerType :
+          undefined;
 
-        store.set({ id, data, digest: generateDigest(t) });
-      }
-    },
+      return {
+        id: String(id),
+        body,
+        bodyHtml: renderMarkdown(body),
+        data: {
+          name: s.name || s.fullName || "",
+          title: s.title || s.role || "",
+          organization: s.organization || s.company || undefined,
+          country: s.country || undefined,
+          speakerType,
+          photo: s.photoUrl || s.photo || undefined,
+          bio: s.bioShort || s.bio || undefined,
+          featured: Boolean(s.isFeatured ?? s.featured ?? false),
+          order: Number(s.order ?? s.sortOrder ?? 100),
+        },
+      };
+    })
+    .filter((s): s is SpeakerItem => s !== null)
+    .sort((a, b) => a.data.order - b.data.order);
+}
+
+export interface TopicItem {
+  id: string;
+  data: { title: string; icon: string; order: number };
+}
+
+export async function getTopics(): Promise<TopicItem[]> {
+  const items = await cachedPerRequest("topics", () => fetchResource("topics"));
+
+  return items
+    .map((t): TopicItem | null => {
+      const id = t.slug || t.id;
+      if (!id) return null;
+      return {
+        id: String(id),
+        data: {
+          title: t.title || "",
+          icon: t.icon || "label",
+          order: Number(t.order ?? t.sortOrder ?? 100),
+        },
+      };
+    })
+    .filter((t): t is TopicItem => t !== null)
+    .sort((a, b) => a.data.order - b.data.order);
+}
+
+export interface SponsorItem {
+  id: string;
+  data: {
+    name: string;
+    tier: SponsorTier;
+    logo?: string;
+    label?: string;
+    logoMaxWidth?: number;
+    url?: string;
+    order: number;
   };
 }
 
-export function sponsorsLoader(): Loader {
-  return {
-    name: "solsticio:sponsors",
-    load: async ({ store, parseData, generateDigest, logger }) => {
-      const items = await fetchResource("sponsors", logger);
-      store.clear();
+export async function getSponsors(): Promise<SponsorItem[]> {
+  const items = await cachedPerRequest("sponsors", () => fetchResource("sponsors"));
 
-      for (const sp of items) {
-        const id = sp.slug || sp.id;
-        if (!id) continue;
+  return items
+    .map((sp): SponsorItem | null => {
+      const id = sp.slug || sp.id;
+      if (!id) return null;
 
-        const tier = SPONSOR_TIERS.includes(sp.tier) ?
-          sp.tier :
-          (SPONSOR_TIERS.includes(sp.sponsorTier) ? sp.sponsorTier : "patrocinador");
+      const tier: SponsorTier = SPONSOR_TIERS.includes(sp.tier) ?
+        sp.tier :
+        (SPONSOR_TIERS.includes(sp.sponsorTier) ? sp.sponsorTier : "patrocinador");
 
-        const data = await parseData({
-          id,
-          data: {
-            name: sp.name || "",
-            tier,
-            logo: sp.logoUrl || sp["logo-url"] || undefined,
-            url: sp.websiteUrl || sp.url || undefined,
-            order: Number(sp.order ?? sp.sortOrder ?? 100),
-          },
-        });
+      return {
+        id: String(id),
+        data: {
+          name: sp.name || "",
+          tier,
+          logo: sp.logoUrl || sp["logo-url"] || undefined,
+          label: typeof sp.label === "string" && sp.label.trim() ? sp.label.trim() : undefined,
+          logoMaxWidth: Number.isFinite(Number(sp.logoMaxWidth)) ? Number(sp.logoMaxWidth) : undefined,
+          url: sp.websiteUrl || sp.url || undefined,
+          order: Number(sp.order ?? sp.sortOrder ?? 100),
+        },
+      };
+    })
+    .filter((sp): sp is SponsorItem => sp !== null)
+    .sort((a, b) => a.data.order - b.data.order);
+}
 
-        store.set({ id, data, digest: generateDigest(sp) });
-      }
-    },
+export interface NewsItem {
+  id: string;
+  body: string;
+  bodyHtml: string;
+  data: {
+    title: string;
+    date: Date;
+    category: NewsCategory;
+    tags: string[];
+    excerpt: string;
+    cover?: string;
+    author?: string;
+    draft: boolean;
   };
 }
 
-export function newsLoader(): Loader {
-  return {
-    name: "solsticio:news",
-    load: async ({ store, parseData, renderMarkdown, generateDigest, logger }) => {
-      const items = await fetchResource("news", logger);
-      store.clear();
+export async function getNews(): Promise<NewsItem[]> {
+  const items = await cachedPerRequest("news", () => fetchResource("news"));
 
-      for (const n of items) {
-        const id = n.slug || n.id;
-        if (!id) continue;
+  return items
+    .map((n): NewsItem | null => {
+      const id = n.slug || n.id;
+      if (!id) return null;
 
-        const category = NEWS_CATEGORIES.includes(n.category) ? n.category : "anuncio";
+      const category: NewsCategory = NEWS_CATEGORIES.includes(n.category) ?
+        n.category :
+        "anuncio";
+      const body = markdownBody(n.content) || markdownBody(n.body);
 
-        const data = await parseData({
-          id,
-          data: {
-            title: n.title || "",
-            date: n.date || n.publishedAt || Date.now(),
-            category,
-            tags: Array.isArray(n.tags) ? n.tags.map(String) : [],
-            excerpt: n.excerpt || "",
-            author: n.author || n.authorName || undefined,
-            draft: false,
-          },
-        });
+      return {
+        id: String(id),
+        body,
+        bodyHtml: renderMarkdown(body),
+        data: {
+          title: n.title || "",
+          date: new Date(n.date || n.publishedAt || Date.now()),
+          category,
+          tags: Array.isArray(n.tags) ? n.tags.map(String) : [],
+          excerpt: n.excerpt || "",
+          cover: n.cover || n.coverUrl || undefined,
+          author: n.author || n.authorName || undefined,
+          draft: false,
+        },
+      };
+    })
+    .filter((n): n is NewsItem => n !== null)
+    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+}
 
-        const md = markdownBody(n.content) || markdownBody(n.body);
-        const rendered = md ? await renderMarkdown(md) : undefined;
-        store.set({ id, data, body: md, rendered, digest: generateDigest(n) });
-      }
-    },
-  };
+/** Una novedad por su id/slug (para la página de detalle). */
+export async function getNewsById(id: string): Promise<NewsItem | undefined> {
+  const all = await getNews();
+  return all.find((n) => n.id === id);
 }

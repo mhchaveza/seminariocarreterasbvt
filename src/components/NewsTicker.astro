@@ -1,5 +1,5 @@
 ---
-import { getCollection } from "astro:content";
+import { getNews } from "../lib/solsticio";
 
 interface Props {
   limit?: number;
@@ -7,10 +7,8 @@ interface Props {
 
 const { limit = 8 } = Astro.props;
 
-const all = await getCollection("news", ({ data }) => !data.draft);
-const items = all
-  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
-  .slice(0, limit);
+const all = await getNews();
+const items = all.filter((n) => !n.data.draft).slice(0, limit);
 
 const categoryLabel: Record<string, string> = {
   anuncio: "Anuncio",

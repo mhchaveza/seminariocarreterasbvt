@@ -7,6 +7,9 @@ on:
   push:
     branches:
       - main
+  # Botón "Publicar cambios" del panel Solsticio (vía /api/rebuild).
+  repository_dispatch:
+    types: [rebuild-site]
   workflow_dispatch:
 
 jobs:
