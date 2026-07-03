@@ -6,6 +6,7 @@ import Agenda from "../components/Agenda.astro";
 import AgendaComingSoon from "../components/AgendaComingSoon.astro";
 import Speakers from "../components/Speakers.astro";
 import IncludesBar from "../components/IncludesBar.astro";
+import InstagramReels from "../components/InstagramReels.astro";
 import News from "../components/News.astro";
 import NewsTicker from "../components/NewsTicker.astro";
 import OrganizerStrip from "../components/OrganizerStrip.astro";
@@ -448,6 +449,9 @@ const heroStrip = territorioPhotos.length ?
       </div>
     </div>
   </section>
+
+  <!-- REELS de Instagram (gestionados desde el panel de Solsticio) -->
+  <InstagramReels />
 
   <!-- GALERÍA / mosaic -->
   <section class="py-16 md:py-20 bg-surface">

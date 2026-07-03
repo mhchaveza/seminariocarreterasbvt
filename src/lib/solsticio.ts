@@ -145,6 +145,50 @@ async function fetchGalleryPhotos(slug: string): Promise<GalleryPhotoItem[]> {
   }
 }
 
+export interface SocialReelItem {
+  url: string;
+  caption?: string;
+}
+
+export interface InstagramChannel {
+  handle?: string;
+  accountUrl: string;
+  reels: SocialReelItem[];
+}
+
+/**
+ * Canal de Instagram publicado del evento (recurso `social` de la API), con
+ * sus reels ordenados. Devuelve `null` si no hay canal habilitado o la API
+ * falla, para que el sitio simplemente omita la sección.
+ */
+export async function getInstagramChannel(): Promise<InstagramChannel | null> {
+  const items = await cachedPerRequest("social", () => fetchResource("social"));
+
+  const channel = items.find(
+    (c) => c.platform === "instagram" && typeof c.accountUrl === "string" && c.accountUrl,
+  );
+  if (!channel) return null;
+
+  const reels = (Array.isArray(channel.reels) ? channel.reels : [])
+    .slice()
+    .sort((a, b) => Number(a?.sortOrder ?? 0) - Number(b?.sortOrder ?? 0))
+    .map((r): SocialReelItem => ({
+      url: typeof r?.url === "string" ? r.url : "",
+      caption: typeof r?.caption === "string" && r.caption.trim() ?
+        r.caption.trim() :
+        undefined,
+    }))
+    .filter((r) => r.url);
+
+  return {
+    handle: typeof channel.handle === "string" && channel.handle.trim() ?
+      channel.handle.trim() :
+      undefined,
+    accountUrl: channel.accountUrl,
+    reels,
+  };
+}
+
 const NEWS_CATEGORIES = [
   "anuncio",
   "agenda",

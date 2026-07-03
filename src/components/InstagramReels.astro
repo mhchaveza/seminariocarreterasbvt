@@ -1,0 +1,64 @@
+---
+import SectionHeader from "./SectionHeader.astro";
+import { getInstagramChannel } from "../lib/solsticio";
+
+// Reels gestionados desde el panel de Solsticio (recurso `social`). Si el
+// canal de Instagram no está habilitado o no tiene reels, la sección no se
+// renderiza.
+const channel = await getInstagramChannel();
+const reels = channel?.reels ?? [];
+
+// Instagram sirve cada reel embebible en `<permalink>/embed/`.
+const embedUrl = (url: string) => `${url.replace(/\/+$/, "").split("?")[0]}/embed/`;
+---
+
+{
+  channel && reels.length > 0 && (
+    <section id="reels" class="py-20 md:py-28 bg-surface-container-low">
+      <div class="max-w-[1280px] mx-auto px-5 md:px-16">
+        <SectionHeader
+          eyebrow="Síguenos en Instagram"
+          title="El seminario en reels"
+          subtitle="Momentos, anuncios y avances del seminario desde nuestra cuenta de Instagram."
+        />
+
+        <div class="flex flex-wrap justify-center gap-6">
+          {reels.map((reel) => (
+            <div class="w-full max-w-[320px] sm:w-[300px]">
+              <div class="aspect-[9/16] overflow-hidden rounded-lg border border-outline-variant bg-surface-container-lowest shadow-brand">
+                <iframe
+                  src={embedUrl(reel.url)}
+                  title={reel.caption ?? "Reel de Instagram del seminario"}
+                  class="w-full h-full"
+                  frameborder="0"
+                  scrolling="no"
+                  allowfullscreen
+                  loading="lazy"
+                />
+              </div>
+              {reel.caption && (
+                <p class="mt-3 text-sm text-on-surface-variant text-center">
+                  {reel.caption}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div class="mt-10 text-center">
+          <a
+            href={channel.accountUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center font-label text-sm font-semibold uppercase text-primary hover:text-tertiary-container transition-colors"
+          >
+            {channel.handle ?? "Ver en Instagram"}
+            <span class="material-symbols-outlined ml-1 text-base">
+              arrow_outward
+            </span>
+          </a>
+        </div>
+      </div>
+    </section>
+  )
+}
