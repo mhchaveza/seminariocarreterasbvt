@@ -11,19 +11,27 @@ import News from "../components/News.astro";
 import NewsTicker from "../components/NewsTicker.astro";
 import OrganizerStrip from "../components/OrganizerStrip.astro";
 import SponsorsBar from "../components/SponsorsBar.astro";
-import { getEventLocation, getGalleryPhotos, getTopics } from "../lib/solsticio";
+import {
+  getEventLocation,
+  getGalleryPhotos,
+  getTopics,
+} from "../lib/solsticio";
 
 const location = await getEventLocation();
 
 // Galerías gestionadas desde el panel de Solsticio (por slug). Si alguna no
 // está publicada o la API falla, cada sección usa sus imágenes locales.
-const [territorioPhotos, referenciaPhotos, laboratorioPhotos, primeraEdicionPhotos] =
-  await Promise.all([
-    getGalleryPhotos("territorio"),
-    getGalleryPhotos("imagenes-de-referencia"),
-    getGalleryPhotos("laboratorio"),
-    getGalleryPhotos("primera-edicion"),
-  ]);
+const [
+  territorioPhotos,
+  referenciaPhotos,
+  laboratorioPhotos,
+  primeraEdicionPhotos,
+] = await Promise.all([
+  getGalleryPhotos("territorio"),
+  getGalleryPhotos("imagenes-de-referencia"),
+  getGalleryPhotos("laboratorio"),
+  getGalleryPhotos("primera-edicion"),
+]);
 
 // "imagenes-de-referencia" trae 3 fotos: principal y detalle de EL OBJETIVO,
 // y la franja lateral de ¿POR QUÉ ASISTIR?
@@ -117,21 +125,24 @@ const galleryFallback = [
   "/images/que-incluye-tu-inscripcion.jpg",
 ];
 
-const gallery = territorioPhotos.length ?
-  territorioPhotos.map((p) => p.url) :
-  galleryFallback;
+const gallery = territorioPhotos.length
+  ? territorioPhotos.map((p) => p.url)
+  : galleryFallback;
 
 // Franja bajo el hero: 6 celdas; si la galería trae menos fotos se repiten.
-const heroStrip = territorioPhotos.length ?
-  Array.from({ length: 6 }, (_, i) => territorioPhotos[i % territorioPhotos.length].url) :
-  [
-    "/images/vias-territorio/vias-territorio-1.jpg",
-    "/images/vias-territorio/vias-territorio-2.jpg",
-    "/images/vias-territorio/vias-territorio-3.jpg",
-    "/images/vias-territorio/vias-territorio-4.jpg",
-    "/images/vias-territorio/vias-territorio-1.jpg",
-    "/images/vias-territorio/vias-territorio-2.jpg",
-  ];
+const heroStrip = territorioPhotos.length
+  ? Array.from(
+      { length: 6 },
+      (_, i) => territorioPhotos[i % territorioPhotos.length].url,
+    )
+  : [
+      "/images/vias-territorio/vias-territorio-1.jpg",
+      "/images/vias-territorio/vias-territorio-2.jpg",
+      "/images/vias-territorio/vias-territorio-3.jpg",
+      "/images/vias-territorio/vias-territorio-4.jpg",
+      "/images/vias-territorio/vias-territorio-1.jpg",
+      "/images/vias-territorio/vias-territorio-2.jpg",
+    ];
 ---
 
 <BaseLayout
@@ -311,6 +322,18 @@ const heroStrip = territorioPhotos.length ?
     </div>
   </section>
 
+  <!-- PANELISTAS -->
+  <section id="panelistas" class="py-20 md:py-28 bg-surface-container-low">
+    <div class="max-w-[1280px] mx-auto px-5 md:px-16">
+      <SectionHeader
+        eyebrow="Voces expertas"
+        title="Panelistas"
+        subtitle="Líderes nacionales e internacionales en infraestructura vial de bajo volumen."
+      />
+      <Speakers />
+    </div>
+  </section>
+
   <!-- BENEFICIOS con franja lateral con foto -->
   <section class="bg-surface">
     <div class="max-w-[1280px] mx-auto grid grid-cols-1 lg:grid-cols-12">
@@ -358,18 +381,6 @@ const heroStrip = territorioPhotos.length ?
 
   <!-- AGENDA próximamente -->
   <AgendaComingSoon />
-
-  <!-- PANELISTAS -->
-  <section id="panelistas" class="py-20 md:py-28 bg-surface-container-low">
-    <div class="max-w-[1280px] mx-auto px-5 md:px-16">
-      <SectionHeader
-        eyebrow="Voces expertas"
-        title="Panelistas"
-        subtitle="Líderes nacionales e internacionales en infraestructura vial de bajo volumen."
-      />
-      <Speakers />
-    </div>
-  </section>
 
   <!-- AUDIENCIAS con foto por tarjeta -->
   <section class="py-20 md:py-28 bg-surface">
@@ -422,16 +433,12 @@ const heroStrip = territorioPhotos.length ?
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
         {
           tickets.map((t) => (
-            <div
-              class="rounded-lg p-8 text-center border-2 flex flex-col bg-surface-container-lowest border-outline-variant hover:border-primary/40 hover:shadow-brand transition-all"
-            >
+            <div class="rounded-lg p-8 text-center border-2 flex flex-col bg-surface-container-lowest border-outline-variant hover:border-primary/40 hover:shadow-brand transition-all">
               <h3 class="font-headline text-2xl uppercase mb-2 text-primary">
                 {t.name}
               </h3>
               {t.badge && (
-                <p class="text-xs text-on-surface-variant mb-2">
-                  {t.badge}
-                </p>
+                <p class="text-xs text-on-surface-variant mb-2">{t.badge}</p>
               )}
               <div class="font-display text-4xl my-4 text-tertiary-container">
                 {t.price}
